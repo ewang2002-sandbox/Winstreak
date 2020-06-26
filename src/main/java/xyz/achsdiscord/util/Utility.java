@@ -1,5 +1,6 @@
 package xyz.achsdiscord.util;
 
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import net.dv8tion.jda.api.utils.AttachmentOption;
@@ -19,7 +20,7 @@ public class Utility {
         return new File(fileUrl.toURI()).getPath();
     }
 
-    public static MessageAction sendImage(TextChannel channel, BufferedImage img) throws IOException {
+    public static MessageAction sendImage(MessageChannel channel, BufferedImage img) throws IOException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         ImageIO.write(img, "png", bytes);
         bytes.flush();

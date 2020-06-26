@@ -1,15 +1,12 @@
 package xyz.achsdiscord.events;
 
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Message.*;
+import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.utils.AttachmentOption;
 import xyz.achsdiscord.parse.NameProcessor;
+import xyz.achsdiscord.util.Utility;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
@@ -26,10 +23,14 @@ public class BotMessageEvent extends ListenerAdapter {
             if (attachment.isImage()) {
                 try {
                     NameProcessor processor = new NameProcessor(new URL(attachment.getUrl()))
-                            .fixImage();
+                            .fixImage()
+                            .cropImage();
                     BufferedImage image = processor.getImage();
-
+                    processor.getPlayerNames(0, 8);
+                    Utility.sendImage(event.getChannel(), image).queue();
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
