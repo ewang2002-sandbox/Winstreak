@@ -61,13 +61,14 @@ public class NameProcessor {
     public String processImage() {
         String ocrResults = null;
         try {
+            System.out.println(Utility.getPathOfResource("tessdata"));
             ITesseract tesseract = new Tesseract();
-            tesseract.setDatapath(Utility.getPathOfResource("/tessdata"));
+            tesseract.setDatapath(Utility.getPathOfResource("tessdata"));
             tesseract.setLanguage("eng");
             ocrResults = tesseract.doOCR(this._img);
         }
         catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         return ocrResults;
     }

@@ -3,6 +3,8 @@ package xyz.achsdiscord;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import xyz.achsdiscord.classes.Player;
+import xyz.achsdiscord.events.BotMessageEvent;
+import xyz.achsdiscord.events.BotReadyEvent;
 import xyz.achsdiscord.util.Utility;
 
 import javax.security.auth.login.LoginException;
@@ -39,6 +41,7 @@ public final class WinstreakBot {
             this._botClient = JDABuilder
                     .createDefault(this._token)
                     .build();
+            this._botClient.addEventListener(new BotReadyEvent(), new BotMessageEvent());
         }
         catch (LoginException ex) {
             System.out.println(ex.getMessage());
