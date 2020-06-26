@@ -7,6 +7,13 @@ version '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
+    jcenter()
+}
+
+processResources {
+    from ('src/main/java') {
+        include 'token.txt'
+    }
 }
 
 dependencies {
