@@ -9,14 +9,14 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.FileNameMap;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 public class NameProcessor {
     public static final HashMap<String, BufferedImage> characterImageMap;
@@ -89,6 +89,10 @@ public class NameProcessor {
         startingXVal = minStartingXVal;
         startingYVal = minStartingYVal;
 
+        if (startingXVal == this._img.getWidth() || startingYVal == this._img.getHeight()) {
+            throw new Exception("invalid image");
+        }
+
         // right to left, top to bottom
         int finalXVal;
         int mostXVal = -1;
@@ -126,39 +130,107 @@ public class NameProcessor {
         }
 
         // make new copy of the image
-        BufferedImage img = this._img.getSubimage(startingXVal, startingYVal, finalXVal - startingXVal, finalYVal - startingYVal); //fill in the corners of the desired crop location here
-        BufferedImage copyOfImage = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
-        Graphics g = copyOfImage.createGraphics();
-        g.drawImage(img, 0, 0, null);
-        g.dispose();
-
-        this._img = copyOfImage;
+        this._img = this.cropAndGetNewImage(this._img, startingXVal, startingYVal, finalXVal - startingXVal, finalYVal - startingYVal);
         return this;
     }
 
-    public List<String> getPlayerNames(final int widthOfEachCharacter, final int heightOfName) throws IOException {
+    public List<String> getPlayerNames() throws IOException {
+        return this.getPlayerNames(18);
+    }
+
+    public List<String> getPlayerNames(final int INCREMENT_BY) throws IOException {
+        // will contain list of names
         final List<String> list = new ArrayList<>();
 
         final List<BufferedImage> allNamesInChunks = new ArrayList<>();
 
-        final int INCREMENT_BY = 16;
-        for (int y = 0; y < this._img.getHeight() - INCREMENT_BY; y += INCREMENT_BY) {
-            BufferedImage img = this._img.getSubimage(0, y, this._img.getWidth(), INCREMENT_BY); //fill in the corners of the desired crop location here
-            BufferedImage copyOfImage = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
-            Graphics g = copyOfImage.createGraphics();
-            g.drawImage(img, 0, 0, null);
-            g.dispose();
-            allNamesInChunks.add(copyOfImage);
-            y += 2;
+        int y_ = 0;
+        for (; y_ < this._img.getHeight() - INCREMENT_BY; y_ += INCREMENT_BY) {
+            allNamesInChunks.add(this.cropAndGetNewImage(this._img, 0, y_, this._img.getWidth(), INCREMENT_BY));
         }
 
+        if (this._img.getHeight() - y_ >= 0) {
+            allNamesInChunks.add(this.cropAndGetNewImage(this._img, 0, y_, this._img.getWidth(), this._img.getHeight() - y_));
+        }
+
+        // the fun begins. time to parse each image :)
+        List<BufferedImage> test = new ArrayList<>();
+        // image is a name
+        mainLoop:
+        for (BufferedImage image : allNamesInChunks) {
+            // find each "divider"
+            // a "divider" is basically a vertical white line.
+            int origX = 0;
+            int firstWhitespaceLoc = -1;
+            // iterate over each character in the
+            // picture
+            while (true) {
+                int[] allXVals = new int[image.getHeight()];
+
+                innerFor:
+                for (int x = origX; x < image.getWidth(); x++) {
+                    for (int y = 0; y < image.getHeight(); y++) {
+                        if (image.getRGB(x, y) == Color.white.getRGB()) {
+                            allXVals[y] = x;
+                        }
+
+                        // uniqueElementCount is the x-coord of the next divider between the letters
+                        int uniqueElementCount = (int) Arrays.stream(allXVals).distinct().count();
+                       // System.out.println(firstWhitespaceLoc + " | " + x);
+
+                        // this will be true if there is a whitespace
+                        if (uniqueElementCount == 1
+                                && allXVals[0] != origX
+                                && allXVals[0] - origX > 1) {
+                            // we need to check if the previous x was also a whitespace
+                            // if so, we don't break out
+                            
+                            firstWhitespaceLoc = x;
+                            break innerFor;
+                        }
+                    }
+                }
+
+                System.out.println(origX + " | " + 0 + " | " + allXVals[0] + " | " + image.getHeight() + " | " + image.getWidth());
+                BufferedImage character = this.cropAndGetNewImage(image, origX, 0, allXVals[0] - origX, image.getHeight());
+
+                test.add(character);
+
+                origX = allXVals[0];
+
+                if (origX == image.getWidth() || origX + 1 == image.getWidth()) {
+                    break;
+                }
+            }
+
+            System.out.println("XX");
+            break;
+        }
+
+        //savePicturesDebug(test);
+        System.out.println("============");
+        for (BufferedImage image : test) {
+            System.out.println(image.getWidth() + " | " + image.getHeight());
+        }
+        return list;
+    }
+
+    private void savePicturesDebug(List<BufferedImage> allNamesInChunks) throws IOException {
         int num = 0;
         for (BufferedImage img : allNamesInChunks) {
             File outputfile = new File("C:\\Users\\ewang\\Desktop\\Output\\" + ++num + ".png");
             ImageIO.write(img, "png", outputfile);
         }
+    }
 
-        return list;
+    private BufferedImage cropAndGetNewImage(BufferedImage originalImage, int x, int y, int dx, int dy) {
+        BufferedImage img = originalImage.getSubimage(x, y, dx, dy); //fill in the corners of the desired crop location here
+        BufferedImage copyOfImage = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics g = copyOfImage.createGraphics();
+        g.drawImage(img, 0, 0, null);
+        g.dispose();
+
+        return copyOfImage;
     }
 
 
@@ -237,3 +309,4 @@ public class NameProcessor {
         }
     }
 }
+

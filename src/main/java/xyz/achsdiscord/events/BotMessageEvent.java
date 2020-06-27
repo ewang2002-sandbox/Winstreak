@@ -26,8 +26,8 @@ public class BotMessageEvent extends ListenerAdapter {
                             .fixImage()
                             .cropImage();
                     BufferedImage image = processor.getImage();
-                    processor.getPlayerNames(0, 8);
                     Utility.sendImage(event.getChannel(), image).queue();
+                    processor.getPlayerNames();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (Exception e) {
