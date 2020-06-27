@@ -1,5 +1,6 @@
 package xyz.achsdiscord.parse;
 
+import org.junit.Assert;
 import xyz.achsdiscord.classes.RankColor;
 import xyz.achsdiscord.util.Utility;
 
@@ -99,9 +100,8 @@ public class NameProcessor {
         for (int y = 0; y < this._img.getHeight(); y++) {
             for (int x = this._img.getWidth() - 1; x >= 0; x--) {
                 if (this._img.getRGB(x, y) == Color.black.getRGB()) {
-                    int newPossibleX = x;
-                    if (newPossibleX > mostXVal) {
-                        mostXVal = newPossibleX;
+                    if (x > mostXVal) {
+                        mostXVal = x;
                     }
                 }
             }
@@ -115,9 +115,8 @@ public class NameProcessor {
         for (int x = 0; x < this._img.getWidth(); x++) {
             for (int y = this._img.getHeight() - 1; y >= 0; y--) {
                 if (this._img.getRGB(x, y) == Color.black.getRGB()) {
-                    int newPossibleY = y;
-                    if (newPossibleY > mostYVal) {
-                        mostYVal = newPossibleY;
+                    if (y > mostYVal) {
+                        mostYVal = y;
                     }
                 }
             }
@@ -142,75 +141,149 @@ public class NameProcessor {
         // will contain list of names
         final List<String> list = new ArrayList<>();
 
+        // will contain cropped screenshots of each name
         final List<BufferedImage> allNamesInChunks = new ArrayList<>();
 
-        int y_ = 0;
-        for (; y_ < this._img.getHeight() - INCREMENT_BY; y_ += INCREMENT_BY) {
-            allNamesInChunks.add(this.cropAndGetNewImage(this._img, 0, y_, this._img.getWidth(), INCREMENT_BY));
-        }
+        // we're going to crop each image
+        // for easier readability
+        int origY = 0;
+        boolean isInWhiteLineArea = false;
+        do {
+            int[] allYVals = new int[this._img.getWidth()];
+            innerFor:
+            for (int y = origY; y < this._img.getHeight(); y++) {
+                for (int x = 0; x < this._img.getWidth(); x++) {
+//                    System.out.println("(" + x + ", " + y + ")" + " -> " + this._img.getRGB(x, y) + " - " + isInWhiteLineArea);
+                    if (this._img.getRGB(x, y) == Color.black.getRGB()) {
+                        isInWhiteLineArea = false;
+                    }
 
-        if (this._img.getHeight() - y_ >= 0) {
-            allNamesInChunks.add(this.cropAndGetNewImage(this._img, 0, y_, this._img.getWidth(), this._img.getHeight() - y_));
-        }
+                    if (this._img.getRGB(x, y) == Color.white.getRGB()) {
+                        allYVals[x] = y;
+                    }
+
+                    int uniqueElementCount = getUniqueElements(allYVals);
+
+                    // this will be true if there is a whitespace
+                    // has to be same x-vals for each element
+                    if (uniqueElementCount == 1
+                            // the difference between the x-val and the previous
+                            // x-val is greater than 1 (could get rid of above
+                            // statement)
+                            && allYVals[0] - origY > 1) {
+                        if (isInWhiteLineArea) {
+                            origY++;
+                            continue;
+                        }
+
+                        isInWhiteLineArea = true;
+                        break innerFor;
+                    }
+                }
+            }
+
+            // check for unique elements again
+            int uniqueElementCount = getUniqueElements(allYVals);
+            BufferedImage name = this.cropAndGetNewImage(
+                    this._img,
+                    0,
+                    origY,
+                    this._img.getWidth(),
+                    uniqueElementCount == 1
+                            ? allYVals[0] - origY
+                            : this._img.getHeight() - origY
+            );
+
+            allNamesInChunks.add(name);
+            origY = allYVals[0];
+
+            // we're at the end of the image
+        } while (origY != this._img.getHeight() - 1);
+
+        this.savePicturesDebug(allNamesInChunks);
 
         // the fun begins. time to parse each image :)
-        List<BufferedImage> test = new ArrayList<>();
         // image is a name
-        mainLoop:
         for (BufferedImage image : allNamesInChunks) {
+            // let's remove any excess blank space
+            int finalXVal;
+            int mostXVal = -1;
+            for (int y = 0; y < image.getHeight(); y++) {
+                for (int x = image.getWidth() - 1; x >= 0; x--) {
+                    if (image.getRGB(x, y) == Color.black.getRGB()) {
+                        if (x > mostXVal) {
+                            mostXVal = x;
+                        }
+                    }
+                }
+            }
+
+            // account for the fact that
+            // the right side pixel is cut off
+            finalXVal = image.getWidth() - mostXVal > 0
+                    ? ++mostXVal
+                    : mostXVal;
+            if (finalXVal == -1) {
+                continue;
+            }
+
+            BufferedImage newImage = this.cropAndGetNewImage(image, 0, 0, finalXVal, image.getHeight());
             // find each "divider"
-            // a "divider" is basically a vertical white line.
+            // a "divider" is a vertical white line.
             int origX = 0;
-            int firstWhitespaceLoc = -1;
+
+            // characters will go in this array
+            List<BufferedImage> characters = new ArrayList<>();
             // iterate over each character in the
             // picture
-            while (true) {
-                int[] allXVals = new int[image.getHeight()];
+            do {
+                int[] allXVals = new int[newImage.getHeight()];
 
                 innerFor:
-                for (int x = origX; x < image.getWidth(); x++) {
-                    for (int y = 0; y < image.getHeight(); y++) {
-                        if (image.getRGB(x, y) == Color.white.getRGB()) {
+                for (int x = origX; x < newImage.getWidth(); x++) {
+                    for (int y = 0; y < newImage.getHeight(); y++) {
+                        if (newImage.getRGB(x, y) == Color.white.getRGB()) {
                             allXVals[y] = x;
                         }
 
-                        // uniqueElementCount is the x-coord of the next divider between the letters
-                        int uniqueElementCount = (int) Arrays.stream(allXVals).distinct().count();
-                       // System.out.println(firstWhitespaceLoc + " | " + x);
+                        int uniqueElementCount = getUniqueElements(allXVals);
 
                         // this will be true if there is a whitespace
+                        // has to be same x-vals for each element
                         if (uniqueElementCount == 1
+                                // cannot be the same x-val as the previous line
                                 && allXVals[0] != origX
+                                // the difference between the x-val and the previous
+                                // x-val is greater than 1 (could get rid of above
+                                // statement)
                                 && allXVals[0] - origX > 1) {
-                            // we need to check if the previous x was also a whitespace
-                            // if so, we don't break out
-                            
-                            firstWhitespaceLoc = x;
                             break innerFor;
                         }
                     }
                 }
 
-                System.out.println(origX + " | " + 0 + " | " + allXVals[0] + " | " + image.getHeight() + " | " + image.getWidth());
-                BufferedImage character = this.cropAndGetNewImage(image, origX, 0, allXVals[0] - origX, image.getHeight());
+                // check for unique elements again
+                int uniqueElementCount = getUniqueElements(allXVals);
+                BufferedImage character = this.cropAndGetNewImage(
+                        newImage,
+                        origX,
+                        0,
+                        uniqueElementCount == 1
+                                ? allXVals[0] - origX
+                                : newImage.getWidth() - origX,
+                        newImage.getHeight()
+                );
 
-                test.add(character);
-
+                characters.add(character);
                 origX = allXVals[0];
 
-                if (origX == image.getWidth() || origX + 1 == image.getWidth()) {
-                    break;
-                }
-            }
+                // we're at the end of the image
+            } while (origX != newImage.getWidth() - 1);
 
-            System.out.println("XX");
-            break;
-        }
+            // now that each character has been cropped
+            // we can begin the parsing process
 
-        //savePicturesDebug(test);
-        System.out.println("============");
-        for (BufferedImage image : test) {
-            System.out.println(image.getWidth() + " | " + image.getHeight());
+            // TODO...
         }
         return list;
     }
@@ -224,13 +297,18 @@ public class NameProcessor {
     }
 
     private BufferedImage cropAndGetNewImage(BufferedImage originalImage, int x, int y, int dx, int dy) {
-        BufferedImage img = originalImage.getSubimage(x, y, dx, dy); //fill in the corners of the desired crop location here
+        //System.out.println(x + " | " + y + " | " + dx + " | " + dy);
+        BufferedImage img = originalImage.getSubimage(x, y, dx, dy);
         BufferedImage copyOfImage = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
         Graphics g = copyOfImage.createGraphics();
         g.drawImage(img, 0, 0, null);
         g.dispose();
 
         return copyOfImage;
+    }
+
+    private int getUniqueElements(int[] items) {
+        return (int) Arrays.stream(items).distinct().count();
     }
 
 
