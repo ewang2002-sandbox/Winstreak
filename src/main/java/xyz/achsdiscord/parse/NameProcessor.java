@@ -134,10 +134,6 @@ public class NameProcessor {
     }
 
     public List<String> getPlayerNames() throws IOException {
-        return this.getPlayerNames(18);
-    }
-
-    public List<String> getPlayerNames(final int INCREMENT_BY) throws IOException {
         // will contain list of names
         final List<String> list = new ArrayList<>();
 
