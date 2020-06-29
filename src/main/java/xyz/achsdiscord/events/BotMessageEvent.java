@@ -22,9 +22,11 @@ public class BotMessageEvent extends ListenerAdapter {
         for (Attachment attachment : attachments) {
             if (attachment.isImage()) {
                 try {
-                    new NameProcessor(new URL(attachment.getUrl()))
-                            .cropImage()
-                            .getPlayerNames();
+                    var x = new NameProcessor(new URL(attachment.getUrl()))
+                            .fixImage()
+                            .cropImage();
+                    Utility.sendImage(event.getChannel(), x.getImage()).queue();
+                    x.getPlayerNames();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (Exception e) {

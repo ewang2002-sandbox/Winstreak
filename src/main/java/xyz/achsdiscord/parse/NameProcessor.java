@@ -1,6 +1,7 @@
+
 package xyz.achsdiscord.parse;
 
-import org.jetbrains.annotations.NotNull;
+import xyz.achsdiscord.util.Utility;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -8,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.*;
@@ -98,36 +100,65 @@ public class NameProcessor {
 
     /**
      * Creates a new NameProcessor object with the specified BufferedImage.
+     *
      * @param img The image.
      */
-    public NameProcessor(@NotNull BufferedImage img) {
+    public NameProcessor(BufferedImage img) {
         this._img = img;
     }
 
     /**
      * Creates a new NameProcessor object with the specified path to the image.
+     *
      * @param imgPath The path to the image.
      * @throws IOException If the path is invalid.
      */
-    public NameProcessor(@NotNull Path imgPath) throws IOException {
+    public NameProcessor(Path imgPath) throws IOException {
         this._img = ImageIO.read(imgPath.toFile());
     }
 
     /**
      * Creates a new NameProcessor object with the specified URL.
+     *
      * @param link The link to the image.
      * @throws IOException If the URL is invalid.
      */
-    public NameProcessor(@NotNull URL link) throws IOException {
+    public NameProcessor(URL link) throws IOException {
         this._img = ImageIO.read(link);
     }
 
     /**
+     * Fixes the image, essentially replacing every pixel with either white or black. This should be called first.
+     *
+     * @return The object.
+     */
+    public NameProcessor fixImage() {
+        for (int y = 0; y < this._img.getHeight(); y++) {
+            for (int x = 0; x < this._img.getWidth(); x++) {
+                Color color = new Color(this._img.getRGB(x, y));
+
+                boolean isChanged = false;
+                if (this.isValidColor(color)) {
+                    isChanged = true;
+                    this._img.setRGB(x, y, Color.black.getRGB());
+                }
+
+                if (!isChanged) {
+                    this._img.setRGB(x, y, Color.white.getRGB());
+                }
+            }
+        }
+
+        return this;
+    }
+
+    /**
      * Crops the image so there is only text. This might screw up if there are other elements with the same color as the rank colors.
+     *
      * @return The object.
      * @throws InvalidImageException If the image is not valid (i.e. if the image given has no detectable colors).
      */
-    public NameProcessor cropImage() throws InvalidImageException, IOException {
+    public NameProcessor cropImage() throws InvalidImageException {
         int startingXVal;
         int startingYVal;
         int minStartingXVal = this._img.getWidth();
@@ -135,28 +166,22 @@ public class NameProcessor {
         // left to right, top to bottom
         for (int y = 0; y < this._img.getHeight(); y++) {
             for (int x = 0; x < this._img.getWidth(); x++) {
-                Color color = new Color(this._img.getRGB(x, y));
-                if (this.isValidColor(color)) {
+                if (this._img.getRGB(x, y) == Color.black.getRGB()) {
                     if (x < minStartingXVal) {
                         minStartingXVal = x;
-                        System.out.println("X => " + x + " | " + y);
                     }
 
                     if (y < minStartingYVal) {
                         minStartingYVal = y;
-                        System.out.println("Y => " + x + " | " + y);
                     }
                 }
             }
         }
 
-
         startingXVal = minStartingXVal;
         startingYVal = minStartingYVal;
-        System.out.println(startingXVal + " | " + startingYVal);
 
-
-        if (startingXVal == this._img.getWidth() && startingYVal == this._img.getHeight()) {
+        if (startingXVal == this._img.getWidth() || startingYVal == this._img.getHeight()) {
             throw new InvalidImageException("invalid image");
         }
 
@@ -165,8 +190,7 @@ public class NameProcessor {
         int mostXVal = -1;
         for (int y = 0; y < this._img.getHeight(); y++) {
             for (int x = this._img.getWidth() - 1; x >= 0; x--) {
-                Color color = new Color(this._img.getRGB(x, y));
-                if (this.isValidColor(color)) {
+                if (this._img.getRGB(x, y) == Color.black.getRGB()) {
                     if (x > mostXVal) {
                         mostXVal = x;
                     }
@@ -175,16 +199,15 @@ public class NameProcessor {
         }
 
         finalXVal = this._img.getWidth() - mostXVal > 0
-            ? ++mostXVal
-            : mostXVal;
+                ? ++mostXVal
+                : mostXVal;
 
         // left to right, bottom to top
         int finalYVal;
         int mostYVal = -1;
         for (int x = 0; x < this._img.getWidth(); x++) {
             for (int y = this._img.getHeight() - 1; y >= 0; y--) {
-                Color color = new Color(this._img.getRGB(x, y));
-                if (this.isValidColor(color)) {
+                if (this._img.getRGB(x, y) == Color.black.getRGB()) {
                     if (y > mostYVal) {
                         mostYVal = y;
                     }
@@ -192,9 +215,7 @@ public class NameProcessor {
             }
         }
 
-        finalYVal = this._img.getHeight() - mostYVal > 0
-            ? ++mostYVal
-            : mostYVal;
+        finalYVal = mostYVal;
 
         if (finalXVal == -1 || finalYVal == -1) {
             throw new InvalidImageException("invalid image given");
@@ -205,43 +226,118 @@ public class NameProcessor {
         return this;
     }
 
-    private void savePicturesDebug(BufferedImage image) throws IOException {
-        File outputfile = new File("C:\\Users\\ewang\\Desktop\\Output\\out.png");
-        ImageIO.write(image, "png", outputfile);
-    }
-
     /**
      * Gets the player names.
+     *
      * @return A list of names.
      */
-    public List<String> getPlayerNames() {
-        // TODO automatically determine this information
-        int widthOfPixel = 0;
+    public List<String> getPlayerNames() throws IOException {
+        // will contain list of names
+        final List<String> list = new ArrayList<>();
 
-        List<String> nameArray = new ArrayList<>();
-        // max 16 names anyways
-        // add 2 extra in case of invalid input
-        for (int i = 0; i < 18; i++) {
-            String name = "";
-            int x = 0;
-            while (true) {
-                String bitVal = "0";
-                /*
-                while (bitVal == -1 || bitVal % 256 != 0) {
-                    if (bitVal < 0) {
-                        bitVal = 0;
+        // will contain cropped screenshots of each name
+        final List<BufferedImage> allNamesInChunks = new ArrayList<>();
+
+        // we're going to crop each image
+        // for easier readability
+        int origY = 0;
+        do {
+            int firstVal = 0;
+            boolean firstChanged = false;
+
+            int lastKnownNonSeparator = 0;
+            boolean lastKnownSepChanged = false;
+
+            int lastVal = 0;
+
+            for (int y = origY; y < this._img.getHeight(); y++) {
+                boolean isSep = this.isSeparator(y);
+                if (isSep) {
+                    if (lastKnownSepChanged && lastKnownNonSeparator - firstVal != 0) {
+                        lastVal = lastKnownNonSeparator;
+                        break;
                     }
-
-                    bitVal *= 256;
-                    int t = 0;
-                    for (int dy = 0; dy < 8 * widthOfPixel; dy += widthOfPixel) {
-
-                    }
+                    continue;
                 }
-                 */
+
+                if (!firstChanged) {
+                    firstChanged = true;
+                    firstVal = y;
+                }
+
+                lastKnownNonSeparator = y;
+                lastKnownSepChanged = true;
+            }
+
+            System.out.println(firstVal + " | " + lastVal);
+
+            // firstVal and lastVal will be black pixels
+            while ((lastVal - firstVal) % 8 != 0) {
+                if (lastVal + 1 < this._img.getHeight()) {
+                    lastVal += 1;
+                }
+
+                if ((lastVal - firstVal) % 8 == 0) {
+                    break;
+                }
+
+                if (firstVal - 1 > 0) {
+                    firstVal -= 1;
+                }
+
+                if ((lastVal - firstVal) % 8 == 0) {
+                    break;
+                }
+
+                boolean lastValIsSep = this.isSeparator(lastVal);
+                boolean firstValIsSep = this.isSeparator(firstVal);
+
+                if (!firstValIsSep && !lastValIsSep) {
+                    break;
+                }
+            }
+
+            BufferedImage name = null;
+            try {
+                 name = this.cropAndGetNewImage(
+                        this._img,
+                        0,
+                        firstVal,
+                        this._img.getWidth(),
+                        lastVal - firstVal
+                );
+            }
+            catch (Exception e) {
+                break;
+            }
+
+
+            allNamesInChunks.add(name);
+            origY = lastVal;
+            System.out.println("======================");
+            // we're at the end of the image
+        } while (origY != this._img.getHeight() - 1);
+
+        this.savePicturesDebug(allNamesInChunks);
+        final List<String> names = new ArrayList<>();
+
+        // TODO determine this value
+        int width = -1;
+        // process each name, one by one.
+
+
+        return list;
+    }
+
+    private boolean isSeparator(final int y) {
+        for (int x = 0; x < this._img.getWidth(); x++) {
+            Color color = new Color(this._img.getRGB(x, y));
+            if (color.getRGB() == Color.black.getRGB()) {
+                return false;
             }
         }
-        return new ArrayList<>();
+
+        return true;
     }
 
     private boolean isValidColor(Color color) {
@@ -254,6 +350,7 @@ public class NameProcessor {
     }
 
     private BufferedImage cropAndGetNewImage(BufferedImage originalImage, int x, int y, int dx, int dy) {
+        //System.out.println(x + " | " + y + " | " + dx + " | " + dy);
         BufferedImage img = originalImage.getSubimage(x, y, dx, dy);
         BufferedImage copyOfImage = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
         Graphics g = copyOfImage.createGraphics();
@@ -263,8 +360,19 @@ public class NameProcessor {
         return copyOfImage;
     }
 
+    private boolean hasNoDuplicates(int[] items) {
+        return (int) Arrays.stream(items).distinct().count() == 1;
+    }
+
+    private void savePicturesDebug(List<BufferedImage> allNamesInChunks) throws IOException {
+        int num = 0;
+        for (BufferedImage img : allNamesInChunks) {
+            File outputfile = new File("C:\\Users\\ewang\\Desktop\\Output\\" + ++num + ".png");
+            ImageIO.write(img, "png", outputfile);
+        }
+    }
+
     public BufferedImage getImage() {
         return this._img;
     }
 }
-
