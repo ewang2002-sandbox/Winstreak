@@ -10,6 +10,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MinecraftOCR {
     public static final HashMap<String, BufferedImage> characterImageMap;
@@ -23,7 +24,7 @@ public class MinecraftOCR {
 
     public MinecraftOCR ensureProcessed() {
         if (!MinecraftOCR.hasBeenProcessed) {
-            for (BufferedImage image : MinecraftOCR.characterImageMap.values()) {
+            for (Map.Entry<String, BufferedImage> imageEntry : MinecraftOCR.characterImageMap.entrySet()) {
 
             }
 
