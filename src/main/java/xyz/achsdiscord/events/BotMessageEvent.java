@@ -24,9 +24,13 @@ public class BotMessageEvent extends ListenerAdapter {
             if (attachment.isImage()) {
                 try {
                     var x = new NameProcessor(new URL(attachment.getUrl()))
-                            .fixImage()
-                            .cropImage();
+                            .cropImageIfFullScreen()
+                            .makeBlackAndWhite()
+                            .cropHeaderAndFooter()
+                            .fixImage();
+
                     Utility.sendImage(event.getChannel(), x.getImage()).queue();
+
                     List<String> a = x.getPlayerNames();
                     System.out.println("Size -> " + a.size());
                     for (String p : a) {
