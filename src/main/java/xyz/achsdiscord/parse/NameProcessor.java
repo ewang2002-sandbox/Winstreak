@@ -1,19 +1,16 @@
 
 package xyz.achsdiscord.parse;
 
-import xyz.achsdiscord.util.Utility;
-
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class NameProcessor {
     public static final Color MVPPlusPlus = new Color(255, 170, 0);
@@ -23,77 +20,77 @@ public class NameProcessor {
     public static final Color VIP = new Color(85, 255, 85);
     public static final Color NONE = new Color(170, 170, 170);
 
-    public static final Map<BigInteger, String> hashMap;
+    public static final Map<String, String> hashMap;
 
     static {
         hashMap = new HashMap<>();
-        hashMap.put(new BigInteger("190"), "i");
-        hashMap.put(new BigInteger("64514"), "l");
-        hashMap.put(new BigInteger("2161698"), "t");
-        hashMap.put(new BigInteger("8584834"), "I");
-        hashMap.put(new BigInteger("545169568"), "f");
-        hashMap.put(new BigInteger("4261942306"), "k");
-        hashMap.put(new BigInteger("137432555241148"), "");
-        hashMap.put(new BigInteger("280369570053726"), "");
-        hashMap.put(new BigInteger("141564244312192"), "");
-        hashMap.put(new BigInteger("280369603739228"), "");
-        hashMap.put(new BigInteger("534900810364"), "0");
-        hashMap.put(new BigInteger("9713877506"), "1");
-        hashMap.put(new BigInteger("302972572262"), "2");
-        hashMap.put(new BigInteger("294248419948"), "3");
-        hashMap.put(new BigInteger("103755057406"), "4");
-        hashMap.put(new BigInteger("981981110940"), "5");
-        hashMap.put(new BigInteger("259083375116"), "6");
-        hashMap.put(new BigInteger("826790547680"), "7");
-        hashMap.put(new BigInteger("466315547244"), "8");
-        hashMap.put(new BigInteger("414775940216"), "9");
-        hashMap.put(new BigInteger("4311810305"), "_");
-        hashMap.put(new BigInteger("543860760702"), "A");
-        hashMap.put(new BigInteger("17887275550"), "a");
-        hashMap.put(new BigInteger("1093650260572"), "B");
-        hashMap.put(new BigInteger("1091225920028"), "b");
-        hashMap.put(new BigInteger("534765535812"), "C");
-        hashMap.put(new BigInteger("120831746580"), "c");
-        hashMap.put(new BigInteger("1093111284348"), "D");
-        hashMap.put(new BigInteger("120831742718"), "d");
-        hashMap.put(new BigInteger("1093650252418"), "E");
-        hashMap.put(new BigInteger("120966490650"), "e");
-        hashMap.put(new BigInteger("1093616566400"), "F");
-        hashMap.put(new BigInteger("534765544124"), "G");
-        hashMap.put(new BigInteger("107997373758"), "g");
-        hashMap.put(new BigInteger("1091460669694"), "H");
-        hashMap.put(new BigInteger("1091192234014"), "h");
-        hashMap.put(new BigInteger("17213555452"), "J");
-        hashMap.put(new BigInteger("25786646974"), "j");
-        hashMap.put(new BigInteger("1091460681870"), "K");
-        hashMap.put(new BigInteger("1090955379202"), "L");
-        hashMap.put(new BigInteger("1091997548798"), "M");
-        hashMap.put(new BigInteger("266826424350"), "m");
-        hashMap.put(new BigInteger("1091997536510"), "N");
-        hashMap.put(new BigInteger("266826948638"), "n");
-        hashMap.put(new BigInteger("534765535868"), "O");
-        hashMap.put(new BigInteger("120831746588"), "o");
-        hashMap.put(new BigInteger("1093616574528"), "P");
-        hashMap.put(new BigInteger("270920852504"), "p");
-        hashMap.put(new BigInteger("534765536378"), "Q");
-        hashMap.put(new BigInteger("103685559359"), "q");
-        hashMap.put(new BigInteger("1093616574558"), "R");
-        hashMap.put(new BigInteger("266558513168"), "r");
-        hashMap.put(new BigInteger("294786343580"), "S");
-        hashMap.put(new BigInteger("78016817700"), "s");
-        hashMap.put(new BigInteger("551919976576"), "T");
-        hashMap.put(new BigInteger("1082365444860"), "U");
-        hashMap.put(new BigInteger("257731723838"), "u");
-        hashMap.put(new BigInteger("1030993612016"), "V");
-        hashMap.put(new BigInteger("240585409592"), "v");
-        hashMap.put(new BigInteger("1090989327614"), "W");
-        hashMap.put(new BigInteger("257732510270"), "w");
-        hashMap.put(new BigInteger("611229651086"), "X");
-        hashMap.put(new BigInteger("146364961826"), "x");
-        hashMap.put(new BigInteger("550833635456"), "Y");
-        hashMap.put(new BigInteger("244897350974"), "y");
-        hashMap.put(new BigInteger("577850483394"), "Z");
-        hashMap.put(new BigInteger("146669187618"), "z");
+        hashMap.put("011111001111111010000010101000101011111010111100","");
+        hashMap.put("111111101111111010100000101000001111111001011110","");
+        hashMap.put("100000001100000001111110011111101100000010000000","");
+        hashMap.put("111111101111111010100010101000101111111001011100","");
+        hashMap.put("0111110010001010100100101010001001111100","0");
+        hashMap.put("0000001001000010111111100000001000000010","1");
+        hashMap.put("0100011010001010100100101001001001100110","2");
+        hashMap.put("0100010010000010100100101001001001101100","3");
+        hashMap.put("0001100000101000010010001000100011111110","4");
+        hashMap.put("1110010010100010101000101010001010011100","5");
+        hashMap.put("0011110001010010100100101001001000001100","6");
+        hashMap.put("1100000010000000100011101001000011100000","7");
+        hashMap.put("0110110010010010100100101001001001101100","8");
+        hashMap.put("0110000010010010100100101001010001111000","9");
+        hashMap.put("0000000100000001000000010000000100000001","_");
+        hashMap.put("0111111010100000101000001010000001111110","A");
+        hashMap.put("0000010000101010001010100010101000011110","a");
+        hashMap.put("1111111010100010101000101010001001011100","B");
+        hashMap.put("1111111000010010001000100010001000011100","b");
+        hashMap.put("0111110010000010100000101000001001000100","C");
+        hashMap.put("0001110000100010001000100010001000010100","c");
+        hashMap.put("1111111010000010100000101000001001111100","D");
+        hashMap.put("0001110000100010001000100001001011111110","d");
+        hashMap.put("1111111010100010101000101000001010000010","E");
+        hashMap.put("0001110000101010001010100010101000011010","e");
+        hashMap.put("1111111010100000101000001000000010000000","F");
+        hashMap.put("00100000011111101010000010100000","f");
+        hashMap.put("0111110010000010100000101010001010111100","G");
+        hashMap.put("0001100100100101001001010010010100111110","g");
+        hashMap.put("1111111000100000001000000010000011111110","H");
+        hashMap.put("1111111000010000001000000010000000011110","h");
+        hashMap.put("100000101111111010000010","I");
+        hashMap.put("10111110","i");
+        hashMap.put("0000010000000010000000100000001011111100","J");
+        hashMap.put("0000011000000001000000010000000110111110","j");
+        hashMap.put("1111111000100000001000000101000010001110","K");
+        hashMap.put("11111110000010000001010000100010","k");
+        hashMap.put("1111111000000010000000100000001000000010","L");
+        hashMap.put("1111110000000010","l");
+        hashMap.put("1111111001000000001000000100000011111110","M");
+        hashMap.put("0011111000100000000110000010000000011110","m");
+        hashMap.put("1111111001000000001000000001000011111110","N");
+        hashMap.put("0011111000100000001000000010000000011110","n");
+        hashMap.put("0111110010000010100000101000001001111100","O");
+        hashMap.put("0001110000100010001000100010001000011100","o");
+        hashMap.put("1111111010100000101000001010000001000000","P");
+        hashMap.put("0011111100010100001001000010010000011000","p");
+        hashMap.put("0111110010000010100000101000010001111010","Q");
+        hashMap.put("0001100000100100001001000001010000111111","q");
+        hashMap.put("1111111010100000101000001010000001011110","R");
+        hashMap.put("0011111000010000001000000010000000010000","r");
+        hashMap.put("0100010010100010101000101010001010011100","S");
+        hashMap.put("0001001000101010001010100010101000100100","s");
+        hashMap.put("1000000010000000111111101000000010000000","T");
+        hashMap.put("001000001111110000100010","t");
+        hashMap.put("1111110000000010000000100000001011111100","U");
+        hashMap.put("0011110000000010000000100000001000111110","u");
+        hashMap.put("1111000000001100000000100000110011110000","V");
+        hashMap.put("0011100000000100000000100000010000111000","v");
+        hashMap.put("1111111000000100000010000000010011111110","W");
+        hashMap.put("0011110000000010000011100000001000111110","w");
+        hashMap.put("1000111001010000001000000101000010001110","X");
+        hashMap.put("0010001000010100000010000001010000100010","x");
+        hashMap.put("1000000001000000001111100100000010000000","Y");
+        hashMap.put("0011100100000101000001010000010100111110","y");
+        hashMap.put("1000011010001010100100101010001011000010","Z");
+        hashMap.put("0010001000100110001010100011001000100010","z");
     }
 
     private BufferedImage _img;
@@ -223,6 +220,8 @@ public class NameProcessor {
 
         // make new copy of the image
         this._img = this.cropAndGetNewImage(this._img, startingXVal, startingYVal, finalXVal - startingXVal, finalYVal - startingYVal);
+        // now we need to determine where to start
+
         return this;
     }
 
@@ -231,105 +230,55 @@ public class NameProcessor {
      *
      * @return A list of names.
      */
-    public List<String> getPlayerNames() throws IOException {
+    public List<String> getPlayerNames() {
         // will contain list of names
-        final List<String> list = new ArrayList<>();
+        List<String> names = new ArrayList<>();
+        int width = 2;
+        int x = 0;
+        int y = 0;
 
-        // will contain cropped screenshots of each name
-        final List<BufferedImage> allNamesInChunks = new ArrayList<>();
-
-        // we're going to crop each image
-        // for easier readability
-        int origY = 0;
-        do {
-            int firstVal = 0;
-            boolean firstChanged = false;
-
-            int lastKnownNonSeparator = 0;
-            boolean lastKnownSepChanged = false;
-
-            int lastVal = 0;
-
-            for (int y = origY; y < this._img.getHeight(); y++) {
-                boolean isSep = this.isSeparator(y);
-                if (isSep) {
-                    if (lastKnownSepChanged && lastKnownNonSeparator - firstVal != 0) {
-                        lastVal = lastKnownNonSeparator;
-                        break;
+        while (y < this._img.getHeight()) {
+            StringBuilder name = new StringBuilder();
+            while (true) {
+                StringBuilder ttlBytes = new StringBuilder();
+                while (ttlBytes.length() == 0 || !ttlBytes.substring(ttlBytes.length() - 8, ttlBytes.length()).equals("00000000")) {
+                    StringBuilder columnBytes = new StringBuilder();
+                    for (int dy = 0; dy < 8 * width; dy += width) {
+                        System.out.println(x + " | " + (y + dy));
+                        if (this._img.getRGB(x, y + dy) == Color.black.getRGB()) {
+                            columnBytes.append("1");
+                        }
+                        else {
+                            columnBytes.append("0");
+                        }
                     }
-                    continue;
+
+                    ttlBytes.append(columnBytes.toString());
+                    x += width;
                 }
 
-                if (!firstChanged) {
-                    firstChanged = true;
-                    firstVal = y;
+                ttlBytes = new StringBuilder(ttlBytes.substring(0, ttlBytes.length() - 8));
+                if (hashMap.containsKey(ttlBytes.toString())) {
+                    name.append(hashMap.get(ttlBytes.toString()));
                 }
-
-                lastKnownNonSeparator = y;
-                lastKnownSepChanged = true;
-            }
-
-            System.out.println(firstVal + " | " + lastVal);
-
-            // firstVal and lastVal will be black pixels
-            while ((lastVal - firstVal) % 8 != 0) {
-                if (lastVal + 1 < this._img.getHeight()) {
-                    lastVal += 1;
-                }
-
-                if ((lastVal - firstVal) % 8 == 0) {
-                    break;
-                }
-
-                if (firstVal - 1 > 0) {
-                    firstVal -= 1;
-                }
-
-                if ((lastVal - firstVal) % 8 == 0) {
-                    break;
-                }
-
-                boolean lastValIsSep = this.isSeparator(lastVal);
-                boolean firstValIsSep = this.isSeparator(firstVal);
-
-                if (!firstValIsSep && !lastValIsSep) {
+                else {
                     break;
                 }
             }
+            names.add(name.toString());
+            // 8 + 1 means the names + the space
+            // that separates the first name from
+            // the next one
+            y += 9 * width;
+        }
 
-            BufferedImage name = null;
-            try {
-                 name = this.cropAndGetNewImage(
-                        this._img,
-                        0,
-                        firstVal,
-                        this._img.getWidth(),
-                        lastVal - firstVal
-                );
-            }
-            catch (Exception e) {
-                break;
-            }
-
-
-            allNamesInChunks.add(name);
-            origY = lastVal;
-            System.out.println("======================");
-            // we're at the end of the image
-        } while (origY != this._img.getHeight() - 1);
-
-        this.savePicturesDebug(allNamesInChunks);
-        final List<String> names = new ArrayList<>();
-
-        // TODO determine this value
-        int width = -1;
-        // process each name, one by one.
-
-
-        return list;
+        names = names.stream()
+                .filter(name -> name.length() != 0)
+                .collect(Collectors.toList());
+        return names;
     }
 
-    private boolean isSeparator(final int y) {
+    private boolean isHorizontalSeparator(final int y) {
         for (int x = 0; x < this._img.getWidth(); x++) {
             Color color = new Color(this._img.getRGB(x, y));
             if (color.getRGB() == Color.black.getRGB()) {
@@ -350,7 +299,6 @@ public class NameProcessor {
     }
 
     private BufferedImage cropAndGetNewImage(BufferedImage originalImage, int x, int y, int dx, int dy) {
-        //System.out.println(x + " | " + y + " | " + dx + " | " + dy);
         BufferedImage img = originalImage.getSubimage(x, y, dx, dy);
         BufferedImage copyOfImage = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
         Graphics g = copyOfImage.createGraphics();
@@ -370,6 +318,11 @@ public class NameProcessor {
             File outputfile = new File("C:\\Users\\ewang\\Desktop\\Output\\" + ++num + ".png");
             ImageIO.write(img, "png", outputfile);
         }
+    }
+
+    private void savePicturesDebug(BufferedImage img) throws IOException {
+        File outputfile = new File("C:\\Users\\ewang\\Desktop\\Output\\A.png");
+        ImageIO.write(img, "png", outputfile);
     }
 
     public BufferedImage getImage() {

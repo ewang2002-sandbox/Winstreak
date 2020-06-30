@@ -3,6 +3,7 @@ package xyz.achsdiscord.events;
 import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import xyz.achsdiscord.parse.InvalidImageException;
 import xyz.achsdiscord.parse.NameProcessor;
 import xyz.achsdiscord.util.Utility;
 
@@ -26,10 +27,11 @@ public class BotMessageEvent extends ListenerAdapter {
                             .fixImage()
                             .cropImage();
                     Utility.sendImage(event.getChannel(), x.getImage()).queue();
-                    x.getPlayerNames();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (Exception e) {
+                    List<String> a = x.getPlayerNames();
+                    for (String p : a) {
+                        System.out.println(p);
+                    }
+                } catch (IOException | InvalidImageException e) {
                     e.printStackTrace();
                 }
             }
