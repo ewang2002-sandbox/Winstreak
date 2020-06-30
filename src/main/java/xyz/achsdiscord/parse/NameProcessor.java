@@ -1,5 +1,7 @@
-
 package xyz.achsdiscord.parse;
+
+import org.jetbrains.annotations.NotNull;
+import xyz.achsdiscord.util.Utility;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -7,19 +9,20 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class NameProcessor {
+    // assume there are no clouds or other obstructions.
     public static final Color MVPPlusPlus = new Color(255, 170, 0);
     public static final Color MVPPlus = new Color(85, 255, 255);
     public static final Color MVP = new Color(85, 255, 255);
     public static final Color VIPPlus = new Color(85, 255, 85);
     public static final Color VIP = new Color(85, 255, 85);
     public static final Color NONE = new Color(170, 170, 170);
-
-    // assume there are no clouds or other obstructions.
     public static final Color LIST_BACKGROUND_COLOR = new Color(0x3A4A73);
 
     public static final Map<String, String> hashMap;
@@ -95,8 +98,13 @@ public class NameProcessor {
         hashMap.put("0010001000100110001010100011001000100010", "z");
     }
 
+    // private general variables
     private BufferedImage _img;
     private int _width;
+
+    // for control
+    private boolean calledMakeBlkWtFunc = false;
+    private boolean calledFixImgFunc = false;
 
     /**
      * Creates a new NameProcessor object with the specified BufferedImage.
@@ -129,8 +137,9 @@ public class NameProcessor {
 
     /**
      * If the screenshot provided is a full-screen screenshot, call this method first to crop the screenshot appropriately. Note that the person must take a screenshot of the player list in the blue sky.
+     *
      * @return The object.
-     * @throws InvalidImageException
+     * @throws InvalidImageException If the screenshot has no player list or the player list was taken with either clouds or other obstructions (i.e. not taken with just the sky).
      */
     public NameProcessor cropImageIfFullScreen() throws InvalidImageException {
         // top to bottom, left to right
@@ -163,8 +172,11 @@ public class NameProcessor {
             }
         }
 
-        if (topLeftX == -1 || topLeftY == -1 || bottomRightX == -1 || bottomRightY == -1) {
-            throw new InvalidImageException("invalid image given. no player list detected.");
+        if (topLeftX == -1 || bottomRightX == -1) {
+            throw new InvalidImageException("Invalid image given. Either a player " +
+                    "list wasn't detected or the \"background\" of the player list isn't " +
+                    "just the sky. Make sure the image contains the player list and that " +
+                    "the \"background\" of the player list is just the sky (no clouds).");
         }
 
         this.cropImage(
@@ -178,30 +190,63 @@ public class NameProcessor {
     }
 
     /**
-     * Makes the image black and white. This is a required method.
+     * Makes the image black and white for easier processing. This will also get the width of each character, which will be used later.
+     *
+     * You must call this method.
+     *
      * @return The object.
      */
-    public NameProcessor makeBlackAndWhite() {
+    public NameProcessor makeBlackAndWhiteAndGetWidth() {
+        this.calledMakeBlkWtFunc = true;
+
+        boolean foundLineWithValidColor = false;
+        boolean hasTestedWidth = false;
+        List<Integer> possibleWidths = new ArrayList<>();
+
         // make image black and white.
         for (int y = 0; y < this._img.getHeight(); y++) {
+            int width = 0;
             for (int x = 0; x < this._img.getWidth(); x++) {
                 Color color = new Color(this._img.getRGB(x, y));
 
-                boolean isChanged = false;
                 if (this.isValidColor(color)) {
-                    isChanged = true;
+                    foundLineWithValidColor = true;
                     this._img.setRGB(x, y, Color.black.getRGB());
-                }
-
-                if (!isChanged) {
+                } else {
                     this._img.setRGB(x, y, Color.white.getRGB());
                 }
+
+                if (!hasTestedWidth) {
+                    if (this.isValidColor(color)) {
+                        foundLineWithValidColor = true;
+                        ++width;
+                    } else {
+                        if (width != 0) {
+                            possibleWidths.add(width);
+                            width = 0;
+                        }
+                    }
+                }
+
+            }
+
+            if (foundLineWithValidColor) {
+                hasTestedWidth = true;
             }
         }
 
+        // this should never be size 0
+        if (possibleWidths.size() != 0) {
+            this._width = Utility.<Integer>mostCommon(possibleWidths);
+        }
         return this;
     }
 
+    /**
+     * Use this method if you need to crop out the header and footer of the player list. In the case of Hypixel, that will be "You are playing..." and "Ranks, Boosters..."
+     * @return The object.
+     * @throws InvalidImageException If the image wasn't processed through the makeBlackAndWhiteAndGetWidth() method.
+     */
     public NameProcessor cropHeaderAndFooter() throws InvalidImageException {
         boolean topFirstBlankPast = false;
         boolean bottomFirstBlankPast = false;
@@ -226,13 +271,11 @@ public class NameProcessor {
                 if (topSepFound) {
                     if (isSeparator) {
                         topY = y;
-                    }
-                    else {
+                    } else {
                         break;
                     }
                 }
-            }
-            else {
+            } else {
                 if (!isSeparator) {
                     topFirstBlankPast = true;
                 }
@@ -250,13 +293,11 @@ public class NameProcessor {
                 if (bottomSepFound) {
                     if (isSeparator) {
                         bottomY = y;
-                    }
-                    else {
+                    } else {
                         break;
                     }
                 }
-            }
-            else {
+            } else {
                 if (!isSeparator) {
                     bottomFirstBlankPast = true;
                 }
@@ -264,7 +305,9 @@ public class NameProcessor {
         }
 
         if (topY == -1 || bottomY == -1) {
-            throw new InvalidImageException("invalid image given");
+            throw new InvalidImageException("Couldn't crop the image. Make " +
+                    "sure the image was processed beforehand; perhaps try to " +
+                    "run the makeBlackAndWhiteAndGetWidth() method first!");
         }
 
         this.cropImage(0, topY, this._img.getWidth(), bottomY - topY);
@@ -274,9 +317,12 @@ public class NameProcessor {
     /**
      * Attempts to crop the image so ONLY the player names show up. The picture must have been made black and white.
      *
+     * You must call this method.
+     *
      * @return The object.
      */
     public NameProcessor fixImage() throws InvalidImageException {
+        this.calledFixImgFunc = true;
         // try to crop the
         // list of players
         int startingXVal;
@@ -313,14 +359,16 @@ public class NameProcessor {
     }
 
     /**
-     * Gets the player names.
+     * Gets the player names. If you did not call the appropriate methods, this method will return an empty list.
      *
      * @return A list of names.
      */
     public List<String> getPlayerNames() {
+        if (!this.calledMakeBlkWtFunc && !this.calledFixImgFunc) {
+            return new ArrayList<>();
+        }
         // will contain list of names
         List<String> names = new ArrayList<>();
-        int width = 2;
         int y = 0;
 
         while (y <= this._img.getHeight()) {
@@ -333,7 +381,7 @@ public class NameProcessor {
                 while (ttlBytes.length() == 0 || !ttlBytes.substring(ttlBytes.length() - 8).equals("00000000")) {
                     try {
                         StringBuilder columnBytes = new StringBuilder();
-                        for (int dy = 0; dy < 8 * width; dy += width) {
+                        for (int dy = 0; dy < 8 * this._width; dy += this._width) {
                             if (this._img.getRGB(x, y + dy) == Color.black.getRGB()) {
                                 columnBytes.append("1");
                             } else {
@@ -342,7 +390,7 @@ public class NameProcessor {
                         }
 
                         ttlBytes.append(columnBytes.toString());
-                        x += width;
+                        x += this._width;
                     } catch (Exception e) {
                         // this is probably due to poor cropping
                         // or any extra useless characters.
@@ -365,7 +413,7 @@ public class NameProcessor {
             // 8 + 1 means the names + the space
             // that separates the first name from
             // the next one
-            y += 9 * width;
+            y += 9 * this._width;
         }
 
         names = names.stream()
@@ -374,7 +422,7 @@ public class NameProcessor {
         return names;
     }
 
-    private boolean isValidColor(Color color) {
+    private boolean isValidColor(@NotNull Color color) {
         return color.getRGB() == MVPPlusPlus.getRGB()
                 || color.getRGB() == MVPPlus.getRGB()
                 || color.getRGB() == MVP.getRGB()

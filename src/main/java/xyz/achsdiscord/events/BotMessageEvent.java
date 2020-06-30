@@ -7,7 +7,6 @@ import xyz.achsdiscord.parse.InvalidImageException;
 import xyz.achsdiscord.parse.NameProcessor;
 import xyz.achsdiscord.util.Utility;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
@@ -24,8 +23,7 @@ public class BotMessageEvent extends ListenerAdapter {
             if (attachment.isImage()) {
                 try {
                     var x = new NameProcessor(new URL(attachment.getUrl()))
-                            .cropImageIfFullScreen()
-                            .makeBlackAndWhite()
+                            .makeBlackAndWhiteAndGetWidth()
                             .cropHeaderAndFooter()
                             .fixImage();
 

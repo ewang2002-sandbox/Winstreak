@@ -13,6 +13,9 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Utility {
     public static String getPathOfResource(String resource) throws URISyntaxException {
@@ -25,5 +28,23 @@ public class Utility {
         ImageIO.write(img, "png", bytes);
         bytes.flush();
         return channel.sendFile(bytes.toByteArray(), "result.png", new AttachmentOption[] { });
+    }
+
+    public static <T> T mostCommon(List<T> list) {
+        Map<T, Integer> map = new HashMap<>();
+
+        for (T t : list) {
+            Integer val = map.get(t);
+            map.put(t, val == null ? 1 : val + 1);
+        }
+
+        Map.Entry<T, Integer> max = null;
+
+        for (Map.Entry<T, Integer> e : map.entrySet()) {
+            if (max == null || e.getValue() > max.getValue())
+                max = e;
+        }
+
+        return max.getKey();
     }
 }
