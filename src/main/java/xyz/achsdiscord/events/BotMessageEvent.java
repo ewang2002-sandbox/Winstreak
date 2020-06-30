@@ -28,6 +28,7 @@ public class BotMessageEvent extends ListenerAdapter {
                             .cropImage();
                     Utility.sendImage(event.getChannel(), x.getImage()).queue();
                     List<String> a = x.getPlayerNames();
+                    System.out.println("Size -> " + a.size());
                     for (String p : a) {
                         System.out.println(p);
                     }

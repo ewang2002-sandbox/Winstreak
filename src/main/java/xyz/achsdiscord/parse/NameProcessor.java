@@ -10,6 +10,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class NameProcessor {
@@ -182,44 +183,8 @@ public class NameProcessor {
             throw new InvalidImageException("invalid image");
         }
 
-        // right to left, top to bottom
-        int finalXVal;
-        int mostXVal = -1;
-        for (int y = 0; y < this._img.getHeight(); y++) {
-            for (int x = this._img.getWidth() - 1; x >= 0; x--) {
-                if (this._img.getRGB(x, y) == Color.black.getRGB()) {
-                    if (x > mostXVal) {
-                        mostXVal = x;
-                    }
-                }
-            }
-        }
-
-        finalXVal = this._img.getWidth() - mostXVal > 0
-                ? ++mostXVal
-                : mostXVal;
-
-        // left to right, bottom to top
-        int finalYVal;
-        int mostYVal = -1;
-        for (int x = 0; x < this._img.getWidth(); x++) {
-            for (int y = this._img.getHeight() - 1; y >= 0; y--) {
-                if (this._img.getRGB(x, y) == Color.black.getRGB()) {
-                    if (y > mostYVal) {
-                        mostYVal = y;
-                    }
-                }
-            }
-        }
-
-        finalYVal = mostYVal;
-
-        if (finalXVal == -1 || finalYVal == -1) {
-            throw new InvalidImageException("invalid image given");
-        }
-
         // make new copy of the image
-        this._img = this.cropAndGetNewImage(this._img, startingXVal, startingYVal, finalXVal - startingXVal, finalYVal - startingYVal);
+        this._img = this.cropAndGetNewImage(this._img, startingXVal, startingYVal, this._img.getWidth() - startingXVal, this._img.getHeight() - startingYVal);
         // now we need to determine where to start
 
         return this;
@@ -234,30 +199,42 @@ public class NameProcessor {
         // will contain list of names
         List<String> names = new ArrayList<>();
         int width = 2;
-        int x = 0;
         int y = 0;
 
-        while (y < this._img.getHeight()) {
+        while (y <= this._img.getHeight()) {
             StringBuilder name = new StringBuilder();
+            int x = 0;
+
             while (true) {
                 StringBuilder ttlBytes = new StringBuilder();
-                while (ttlBytes.length() == 0 || !ttlBytes.substring(ttlBytes.length() - 8, ttlBytes.length()).equals("00000000")) {
-                    StringBuilder columnBytes = new StringBuilder();
-                    for (int dy = 0; dy < 8 * width; dy += width) {
-                        System.out.println(x + " | " + (y + dy));
-                        if (this._img.getRGB(x, y + dy) == Color.black.getRGB()) {
-                            columnBytes.append("1");
+                boolean errored = false;
+                while (ttlBytes.length() == 0 || !ttlBytes.substring(ttlBytes.length() - 8).equals("00000000")) {
+                    try {
+                        StringBuilder columnBytes = new StringBuilder();
+                        for (int dy = 0; dy < 8 * width; dy += width) {
+                            if (this._img.getRGB(x, y + dy) == Color.black.getRGB()) {
+                                columnBytes.append("1");
+                            }
+                            else {
+                                columnBytes.append("0");
+                            }
                         }
-                        else {
-                            columnBytes.append("0");
-                        }
-                    }
 
-                    ttlBytes.append(columnBytes.toString());
-                    x += width;
+                        ttlBytes.append(columnBytes.toString());
+                        x += width;
+                    }
+                    catch (Exception e) {
+                        // this is probably due to poor cropping
+                        // or any extra useless characters.
+                        errored = true;
+                        break;
+                    }
                 }
 
-                ttlBytes = new StringBuilder(ttlBytes.substring(0, ttlBytes.length() - 8));
+                if (!errored) {
+                    ttlBytes = new StringBuilder(ttlBytes.substring(0, ttlBytes.length() - 8));
+                }
+
                 if (hashMap.containsKey(ttlBytes.toString())) {
                     name.append(hashMap.get(ttlBytes.toString()));
                 }
@@ -278,17 +255,6 @@ public class NameProcessor {
         return names;
     }
 
-    private boolean isHorizontalSeparator(final int y) {
-        for (int x = 0; x < this._img.getWidth(); x++) {
-            Color color = new Color(this._img.getRGB(x, y));
-            if (color.getRGB() == Color.black.getRGB()) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     private boolean isValidColor(Color color) {
         return color.getRGB() == MVPPlusPlus.getRGB()
                 || color.getRGB() == MVPPlus.getRGB()
@@ -306,23 +272,6 @@ public class NameProcessor {
         g.dispose();
 
         return copyOfImage;
-    }
-
-    private boolean hasNoDuplicates(int[] items) {
-        return (int) Arrays.stream(items).distinct().count() == 1;
-    }
-
-    private void savePicturesDebug(List<BufferedImage> allNamesInChunks) throws IOException {
-        int num = 0;
-        for (BufferedImage img : allNamesInChunks) {
-            File outputfile = new File("C:\\Users\\ewang\\Desktop\\Output\\" + ++num + ".png");
-            ImageIO.write(img, "png", outputfile);
-        }
-    }
-
-    private void savePicturesDebug(BufferedImage img) throws IOException {
-        File outputfile = new File("C:\\Users\\ewang\\Desktop\\Output\\A.png");
-        ImageIO.write(img, "png", outputfile);
     }
 
     public BufferedImage getImage() {
