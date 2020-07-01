@@ -396,10 +396,19 @@ public class NameProcessor {
 
     /**
      * Gets the player names. If you do not call the appropriate methods, this method will return an empty list.
-     *
-     * @return A list of names.
+
+     * @return A list of names that were in the screenshot.
      */
     public List<String> getPlayerNames() {
+        return this.getPlayerNames(new ArrayList<>());
+    }
+
+    /**
+     * Gets the player names. If you do not call the appropriate methods, this method will return an empty list.
+     * @param peopleToExclude The people to exclude in the final list.
+     * @return A list of names that were in the screenshot.
+     */
+    public List<String> getPlayerNames(List<String> peopleToExclude) {
         if (!this.calledMakeBlkWtFunc && !this.calledFixImgFunc) {
             return new ArrayList<>();
         }
@@ -445,7 +454,9 @@ public class NameProcessor {
                     break;
                 }
             }
-            names.add(name.toString());
+            if (!peopleToExclude.contains(name.toString())) {
+                names.add(name.toString());
+            }
             // 8 + 1 means the names + the space
             // that separates the first name from
             // the next one

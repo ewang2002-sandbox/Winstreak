@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 public class RequestParser {
     private final String _htmlContent;
+    private final String _name;
     private BedwarsData _soloDataInfo;
     private BedwarsData _doublesDataInfo;
     private BedwarsData _threesDataInfo;
@@ -14,8 +15,9 @@ public class RequestParser {
      * Parses the raw HTML data, which was from the HypixelRequest class.
      * @param htmlContent The HTML String.
      */
-    public RequestParser(String htmlContent) {
+    public RequestParser(String name, String htmlContent) {
         this._htmlContent = htmlContent;
+        this._name = name;
     }
 
     /**
@@ -161,6 +163,10 @@ public class RequestParser {
             );
         }
         return this;
+    }
+
+    public String getName() {
+        return this._name;
     }
 
     public BedwarsData getSoloDataInfo() {
