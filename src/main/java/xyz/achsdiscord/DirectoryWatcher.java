@@ -1,5 +1,7 @@
 package xyz.achsdiscord;
 
+import xyz.achsdiscord.checker.NameChecker;
+import xyz.achsdiscord.checker.NameCheckerResults;
 import xyz.achsdiscord.parse.InvalidImageException;
 import xyz.achsdiscord.parse.NameProcessor;
 import xyz.achsdiscord.request.BedwarsData;
@@ -39,6 +41,9 @@ public class DirectoryWatcher {
             return;
         }
 
+        List<String> names;
+        List<NameCheckerResults> results;
+
         // continuously check folder
         for (;;) {
             for (WatchEvent<?> event : key.pollEvents()) {
@@ -47,7 +52,6 @@ public class DirectoryWatcher {
                 }
 
                 if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
-                    List<String> names;
                     try {
                         if (event.context().toString().endsWith(".png")) {
                             File file = Path.of(path.toString(), event.context().toString()).toFile();
@@ -72,11 +76,28 @@ public class DirectoryWatcher {
                             String listOfNames = String.join(", ", names);
                             System.out.println("[INFO] Names: " + listOfNames);
 
-                            long startRequest = System.nanoTime();
-                            String data = processNames(names);
-                            long endRequest = System.nanoTime();
-                            System.out.println("[INFO] Requested all data in " + ((endRequest - startRequest) * 1e-9) + " seconds.");
-                            System.out.println(data);
+                            long startTimeForReq = System.nanoTime();
+                            results = new NameChecker(names)
+                                    .setMinimumBrokenBedsNeeded(300)
+                                    .setMinimumFinalKillsNeeded(1000)
+                                    .check();
+                            long endTimeForReq = System.nanoTime();
+                            System.out.println("[INFO] Sent " + names.size() + " API calls in " + ((endTimeForReq - startTimeForReq) * 1e-9) + " seconds.");
+                            if (results.size() == 0) {
+                                System.out.println("[INFO] This lobby is good to go.");
+                            }
+                            else {
+                                StringBuilder b = new StringBuilder();
+                                for (NameCheckerResults result : results) {
+                                    b.append("⇒ Name: " + result.name)
+                                            .append(System.lineSeparator()).append("\tFinal Kills: ").append(result.finalKills)
+                                            .append(System.lineSeparator()).append("\tBroken Beds: ").append(result.bedsDestroyed)
+                                            .append(System.lineSeparator());
+                                }
+                                System.out.println(b.toString());
+                            }
+
+                            System.out.println("============================");
                         }
                     }
                     catch (Exception e) {
@@ -86,26 +107,5 @@ public class DirectoryWatcher {
                 }
             }
         }
-    }
-
-    public static String processNames(List<String> names) throws ExecutionException, InterruptedException {
-        FutureTask<String>[] nameResponses = new FutureTask[names.size()];
-        for (int i = 0; i < names.size(); i++) {
-            HypixelRequest req = new HypixelRequest(names.get(i));
-            nameResponses[i] = new FutureTask<>(req);
-
-            Thread t = new Thread(nameResponses[i]);
-            t.start();
-        }
-
-        StringBuilder b = new StringBuilder();
-        for (int i = 0; i < nameResponses.length; i++) {
-            BedwarsData data = new RequestParser(names.get(i), nameResponses[i].get())
-                    .parse()
-                    .getTotalDataInfo();
-            b.append("⇒ ").append(names.get(i)).append(" | Beds: ").append(data.bedsBroken).append(" | Final Kills: ").append(data.finalKillDeathRatio)
-                    .append(System.lineSeparator());
-        }
-        return b.toString();
     }
 }
