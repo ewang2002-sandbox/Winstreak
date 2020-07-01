@@ -22,18 +22,28 @@ public class BotMessageEvent extends ListenerAdapter {
         for (Attachment attachment : attachments) {
             if (attachment.isImage()) {
                 try {
-                    var x = new NameProcessor(new URL(attachment.getUrl()))
+                    // start processing
+                    long timeStart = System.nanoTime();
+                    var nameProcessor = new NameProcessor(new URL(attachment.getUrl()));
+                    long timeA = System.nanoTime();
+                    nameProcessor.cropImageIfFullScreen()
                             .makeBlackAndWhiteAndGetWidth()
                             .cropHeaderAndFooter()
                             .fixImage();
+                    List<String> np = nameProcessor.getPlayerNames();
+                    long endTime = System.nanoTime();
+                    // end processing
 
-                    Utility.sendImage(event.getChannel(), x.getImage()).queue();
-
-                    List<String> a = x.getPlayerNames();
-                    System.out.println("Size -> " + a.size());
-                    for (String p : a) {
-                        System.out.println(p);
+                    StringBuilder b = new StringBuilder();
+                    for (int i = 0; i < np.size(); i++) {
+                        b.append(np.get(i) + ", ");
                     }
+                    Utility.sendImage(event.getChannel(), nameProcessor.getImage()).queue();
+                    System.out.println(np.size() + " Players Accounted: " + b.toString());
+                    System.out.println("Everything Took: " + ((endTime - timeStart) * 1e-9) + " Seconds");
+                    System.out.println("Instantiation Took: " + ((timeA - timeStart) * 1e-9) + " Seconds");
+                    System.out.println("Processing Took: " + ((endTime - timeA) * 1e-9) + " Seconds");
+                    System.out.println("===========================");
                 } catch (IOException | InvalidImageException e) {
                     e.printStackTrace();
                 }

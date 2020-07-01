@@ -16,14 +16,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class NameProcessor {
-    // assume there are no clouds or other obstructions.
-    public static final Color MVPPlusPlus = new Color(255, 170, 0);
-    public static final Color MVPPlus = new Color(85, 255, 255);
+    // rank colors
+    public static final Color MVP_PLUS_PLUS = new Color(255, 170, 0);
+    public static final Color MVP_PLUS = new Color(85, 255, 255);
     public static final Color MVP = new Color(85, 255, 255);
-    public static final Color VIPPlus = new Color(85, 255, 85);
+    public static final Color VIP_PLUS = new Color(85, 255, 85);
     public static final Color VIP = new Color(85, 255, 85);
     public static final Color NONE = new Color(170, 170, 170);
-    public static final Color LIST_BACKGROUND_COLOR = new Color(0x3A4A73);
+
+    // other colors
+    public static final Color STORE_HYPIXEL_NET_DARK_COLOR = new Color(0x3F1515);
+    public static final Color BOSS_BAR_COLOR = new Color(0x76005C);
 
     public static final Map<String, String> hashMap;
 
@@ -98,11 +101,15 @@ public class NameProcessor {
         hashMap.put("0010001000100110001010100011001000100010", "z");
     }
 
+    public static final int LISTED_NUMS_OFFSET = 30;
+
     // private general variables
     private BufferedImage _img;
     private int _width;
 
     // for control
+    private boolean calledCropIfFullScreen = false;
+    private boolean calledCropHeaderFooter = false;
     private boolean calledMakeBlkWtFunc = false;
     private boolean calledFixImgFunc = false;
 
@@ -136,12 +143,22 @@ public class NameProcessor {
     }
 
     /**
-     * If the screenshot provided is a full-screen screenshot, call this method first to crop the screenshot appropriately. Note that the person must take a screenshot of the player list in the blue sky.
+     * If the screenshot provided is a screenshot that shows the entire Minecraft application, call this method first to crop the screenshot appropriately.
+     * <p><p>
+     * Note that the person must take a screenshot of the player list in the blue sky.
+     * <p><p>
+     * If you use a screenshot that shows the entire Minecraft application, you MUST run this method first.
      *
-     * @return The object.
+     * @return This object.
      * @throws InvalidImageException If the screenshot has no player list or the player list was taken with either clouds or other obstructions (i.e. not taken with just the sky).
      */
     public NameProcessor cropImageIfFullScreen() throws InvalidImageException {
+        if (this.calledCropIfFullScreen) {
+            return this;
+        }
+
+        this.calledCropIfFullScreen = true;
+
         // top to bottom, left to right
         // find the top left coordinates of the
         // player list box
@@ -150,7 +167,7 @@ public class NameProcessor {
         major:
         for (int y = 0; y < this._img.getHeight(); y++) {
             for (int x = 0; x < this._img.getWidth(); x++) {
-                if (this._img.getRGB(x, y) == LIST_BACKGROUND_COLOR.getRGB()) {
+                if (this._img.getRGB(x, y) == BOSS_BAR_COLOR.getRGB()) {
                     topLeftX = x;
                     topLeftY = y;
                     break major;
@@ -162,9 +179,9 @@ public class NameProcessor {
         int bottomRightX = -1;
         int bottomRightY = -1;
         major:
-        for (int x = this._img.getWidth() - 1; x >= 0; x--) {
+        for (int x = this._img.getWidth() - LISTED_NUMS_OFFSET; x >= 0; x--) {
             for (int y = this._img.getHeight() - 1; y >= 0; y--) {
-                if (this._img.getRGB(x, y) == LIST_BACKGROUND_COLOR.getRGB()) {
+                if (this._img.getRGB(x, y) == STORE_HYPIXEL_NET_DARK_COLOR.getRGB()) {
                     bottomRightX = x;
                     bottomRightY = y;
                     break major;
@@ -190,13 +207,20 @@ public class NameProcessor {
     }
 
     /**
-     * Makes the image black and white for easier processing. This will also get the width of each character, which will be used later.
+     * Makes the image black and white for easier processing.
+     * This will also get the width of each character, which will be used later.
+     * <p><p>
+     * You must call this method, regardless of screenshot type.
+     * <p><p>
+     * If the screenshot provided shows all of Minecraft, you must run cropImageIfFullScreen() first.
      *
-     * You must call this method.
-     *
-     * @return The object.
+     * @return This object.
      */
     public NameProcessor makeBlackAndWhiteAndGetWidth() {
+        if (this.calledMakeBlkWtFunc) {
+            return this;
+        }
+
         this.calledMakeBlkWtFunc = true;
 
         boolean foundLineWithValidColor = false;
@@ -239,27 +263,54 @@ public class NameProcessor {
         if (possibleWidths.size() != 0) {
             this._width = Utility.<Integer>mostCommon(possibleWidths);
         }
+
+        // now, let's make sure there aren't any random "particles" sitting around.
+        for (int x = 0; x < this._img.getWidth(); x++) {
+            int numberOfParticles = this.numberParticlesInVertLine(x);
+            if (numberOfParticles > 10) {
+                break;
+            }
+            else if (numberOfParticles == 0) {
+                continue;
+            }
+            else {
+                for (int y = 0; y < this._img.getHeight(); y++) {
+                    if (this._img.getRGB(x, y) == Color.black.getRGB()) {
+                        this._img.setRGB(x, y, Color.white.getRGB());
+                    }
+                }
+            }
+        }
         return this;
     }
 
     /**
-     * Use this method if you need to crop out the header and footer of the player list. In the case of Hypixel, that will be "You are playing..." and "Ranks, Boosters..."
-     * @return The object.
+     * Use this method if you need to crop out the header and footer of the player list.
+     * <p><p>
+     * In the case of Hypixel, that will be "You are playing..." and "Ranks, Boosters..."
+     * <p><p>
+     * Only run this method if the screenshot you provided was a screenshot of the entire Minecraft application OR you have both header and footer.
+     * <p><p>
+     * You must have used the makeBlackAndWhiteAndGetWidth() method first.
+     *
+     * @return This object.
      * @throws InvalidImageException If the image wasn't processed through the makeBlackAndWhiteAndGetWidth() method.
      */
     public NameProcessor cropHeaderAndFooter() throws InvalidImageException {
+        if (this.calledCropHeaderFooter) {
+            return this;
+        }
+
+        this.calledCropHeaderFooter = true;
+
         boolean topFirstBlankPast = false;
-        boolean bottomFirstBlankPast = false;
 
         boolean topSepFound = false;
         int topY = -1;
 
-        boolean bottomSepFound = false;
-        int bottomY = -1;
-
         // top to bottom
         for (int y = 0; y < this._img.getHeight(); y++) {
-            boolean isSeparator = this.isHorizontalSeparator(y);
+            boolean isSeparator = this.numberParticlesInHorizLine(y) == 0;
             // top first blank is the top separator that isn't cropped
             if (topFirstBlankPast) {
                 // topSepFound is the separator that is
@@ -282,46 +333,42 @@ public class NameProcessor {
             }
         }
 
-        // bottom to top
         for (int y = this._img.getHeight() - 1; y >= 0; y--) {
-            boolean isSeparator = this.isHorizontalSeparator(y);
-            if (bottomFirstBlankPast) {
-                if (!bottomSepFound && isSeparator) {
-                    bottomSepFound = true;
-                }
-
-                if (bottomSepFound) {
-                    if (isSeparator) {
-                        bottomY = y;
-                    } else {
-                        break;
+            boolean isSep = this.numberParticlesInHorizLine(y) == 0;
+            if (isSep) {
+                break;
+            }
+            else {
+                for (int x = 0; x < this._img.getWidth(); x++) {
+                    if (this._img.getRGB(x, y) != Color.white.getRGB()) {
+                        this._img.setRGB(x, y, Color.white.getRGB());
                     }
-                }
-            } else {
-                if (!isSeparator) {
-                    bottomFirstBlankPast = true;
                 }
             }
         }
 
-        if (topY == -1 || bottomY == -1) {
+        if (topY == -1) {
             throw new InvalidImageException("Couldn't crop the image. Make " +
                     "sure the image was processed beforehand; perhaps try to " +
                     "run the makeBlackAndWhiteAndGetWidth() method first!");
         }
 
-        this.cropImage(0, topY, this._img.getWidth(), bottomY - topY);
+        this.cropImage(0, topY, this._img.getWidth(), this._img.getHeight() - topY);
         return this;
     }
 
     /**
      * Attempts to crop the image so ONLY the player names show up. The picture must have been made black and white.
-     *
+     * <p>
      * You must call this method.
      *
      * @return The object.
      */
     public NameProcessor fixImage() throws InvalidImageException {
+        if (this.calledFixImgFunc) {
+            return this;
+        }
+
         this.calledFixImgFunc = true;
         // try to crop the
         // list of players
@@ -423,10 +470,10 @@ public class NameProcessor {
     }
 
     private boolean isValidColor(@NotNull Color color) {
-        return color.getRGB() == MVPPlusPlus.getRGB()
-                || color.getRGB() == MVPPlus.getRGB()
+        return color.getRGB() == MVP_PLUS_PLUS.getRGB()
+                || color.getRGB() == MVP_PLUS.getRGB()
                 || color.getRGB() == MVP.getRGB()
-                || color.getRGB() == VIPPlus.getRGB()
+                || color.getRGB() == VIP_PLUS.getRGB()
                 || color.getRGB() == VIP.getRGB()
                 || color.getRGB() == NONE.getRGB();
     }
@@ -440,17 +487,29 @@ public class NameProcessor {
         this._img = copyOfImage;
     }
 
-    public BufferedImage getImage() {
-        return this._img;
-    }
-
-    private boolean isHorizontalSeparator(final int y) {
+    private int numberParticlesInHorizLine(final int y) {
+        int particles = 0;
         for (int x = 0; x < this._img.getWidth(); x++) {
             if (this._img.getRGB(x, y) == Color.black.getRGB()) {
-                return false;
+                particles++;
             }
         }
 
-        return true;
+        return particles;
+    }
+
+    private int numberParticlesInVertLine(final int x) {
+        int particles = 0;
+        for (int y = 0; y < this._img.getHeight(); y++) {
+            if (this._img.getRGB(x, y) == Color.black.getRGB()) {
+                particles++;
+            }
+        }
+
+        return particles;
+    }
+
+    public BufferedImage getImage() {
+        return this._img;
     }
 }
