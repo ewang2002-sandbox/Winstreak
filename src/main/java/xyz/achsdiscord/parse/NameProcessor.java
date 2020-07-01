@@ -144,10 +144,8 @@ public class NameProcessor {
 
     /**
      * If the screenshot provided is a screenshot that shows the entire Minecraft application, call this method first to crop the screenshot appropriately.
-     * <p><p>
-     * Note that the person must take a screenshot of the player list in the blue sky.
-     * <p><p>
-     * If you use a screenshot that shows the entire Minecraft application, you MUST run this method first.
+     * <p>Note that the person must take a screenshot of the player list in the blue sky.
+     * <p>If you use a screenshot that shows the entire Minecraft application, you MUST run this method first.
      *
      * @return This object.
      * @throws InvalidImageException If the screenshot has no player list or the player list was taken with either clouds or other obstructions (i.e. not taken with just the sky).
@@ -207,12 +205,9 @@ public class NameProcessor {
     }
 
     /**
-     * Makes the image black and white for easier processing.
-     * This will also get the width of each character, which will be used later.
-     * <p><p>
-     * You must call this method, regardless of screenshot type.
-     * <p><p>
-     * If the screenshot provided shows all of Minecraft, you must run cropImageIfFullScreen() first.
+     * Makes the image black and white for easier processing. This will also get the width of each character, which will be used later.
+     * <p> You must call this method, regardless of screenshot type.
+     * <p> If the screenshot provided shows all of Minecraft, you must run {@code cropImageIfFullScreen()} first.
      *
      * @return This object.
      */
@@ -267,13 +262,13 @@ public class NameProcessor {
         // now, let's make sure there aren't any random "particles" sitting around.
         for (int x = 0; x < this._img.getWidth(); x++) {
             int numberOfParticles = this.numberParticlesInVertLine(x);
+            // more than 10 particles means it's a name.
             if (numberOfParticles > 10) {
                 break;
             }
-            else if (numberOfParticles == 0) {
-                continue;
-            }
             else {
+                // probably leftovers from a skin with the same
+                // colors as one of the rank colors
                 for (int y = 0; y < this._img.getHeight(); y++) {
                     if (this._img.getRGB(x, y) == Color.black.getRGB()) {
                         this._img.setRGB(x, y, Color.white.getRGB());
@@ -286,15 +281,12 @@ public class NameProcessor {
 
     /**
      * Use this method if you need to crop out the header and footer of the player list.
-     * <p><p>
-     * In the case of Hypixel, that will be "You are playing..." and "Ranks, Boosters..."
-     * <p><p>
-     * Only run this method if the screenshot you provided was a screenshot of the entire Minecraft application OR you have both header and footer.
-     * <p><p>
-     * You must have used the makeBlackAndWhiteAndGetWidth() method first.
+     * <p>In the case of Hypixel, that will be "You are playing..." and "Ranks, Boosters..."
+     * <p>Only run this method if the screenshot you provided was a screenshot of the entire Minecraft application OR you have both header and footer.
+     * <p>You must have used the {@code makeBlackAndWhiteAndGetWidth()} method first.
      *
      * @return This object.
-     * @throws InvalidImageException If the image wasn't processed through the makeBlackAndWhiteAndGetWidth() method.
+     * @throws InvalidImageException If the image wasn't processed through the {@code makeBlackAndWhiteAndGetWidth()} method.
      */
     public NameProcessor cropHeaderAndFooter() throws InvalidImageException {
         if (this.calledCropHeaderFooter) {
@@ -304,7 +296,6 @@ public class NameProcessor {
         this.calledCropHeaderFooter = true;
 
         boolean topFirstBlankPast = false;
-
         boolean topSepFound = false;
         int topY = -1;
 
@@ -337,8 +328,7 @@ public class NameProcessor {
             boolean isSep = this.numberParticlesInHorizLine(y) == 0;
             if (isSep) {
                 break;
-            }
-            else {
+            } else {
                 for (int x = 0; x < this._img.getWidth(); x++) {
                     if (this._img.getRGB(x, y) != Color.white.getRGB()) {
                         this._img.setRGB(x, y, Color.white.getRGB());
@@ -359,10 +349,10 @@ public class NameProcessor {
 
     /**
      * Attempts to crop the image so ONLY the player names show up. The picture must have been made black and white.
-     * <p>
-     * You must call this method.
+     * <p>You must call this method.
      *
      * @return The object.
+     * @throws InvalidImageException If the image wasn't processed through the {@code makeBlackAndWhiteAndGetWidth()} method.
      */
     public NameProcessor fixImage() throws InvalidImageException {
         if (this.calledFixImgFunc) {
@@ -395,7 +385,9 @@ public class NameProcessor {
         startingYVal = minStartingYVal;
 
         if (startingXVal == this._img.getWidth() || startingYVal == this._img.getHeight()) {
-            throw new InvalidImageException("invalid image");
+            throw new InvalidImageException("Couldn't crop the image. Make " +
+                    "sure the image was processed beforehand; perhaps try to " +
+                    "run the makeBlackAndWhiteAndGetWidth() method first!");
         }
 
         // make new copy of the image
@@ -406,7 +398,7 @@ public class NameProcessor {
     }
 
     /**
-     * Gets the player names. If you did not call the appropriate methods, this method will return an empty list.
+     * Gets the player names. If you do not call the appropriate methods, this method will return an empty list.
      *
      * @return A list of names.
      */
