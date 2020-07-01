@@ -10,10 +10,18 @@ public class RequestParser {
     private BedwarsData _foursDataInfo;
     private BedwarsData _totalInfo;
 
+    /**
+     * Parses the raw HTML data, which was from the HypixelRequest class.
+     * @param htmlContent The HTML String.
+     */
     public RequestParser(String htmlContent) {
         this._htmlContent = htmlContent;
     }
 
+    /**
+     * Parses the raw HTML data.
+     * @return This object.
+     */
     public RequestParser parse() {
         // only get bedwars data
         String bedwarsData = this._htmlContent
@@ -141,16 +149,17 @@ public class RequestParser {
                 || this._foursDataInfo == null) {
             this._totalInfo = null;
         }
-
-        this._totalInfo = new BedwarsData(
-                this._soloDataInfo.kills + this._doublesDataInfo.kills + this._threesDataInfo.kills + this._foursDataInfo.kills,
-                this._soloDataInfo.deaths + this._doublesDataInfo.deaths + this._threesDataInfo.deaths + this._foursDataInfo.deaths,
-                this._soloDataInfo.finalKills + this._doublesDataInfo.finalKills + this._threesDataInfo.finalKills + this._foursDataInfo.finalKills,
-                this._soloDataInfo.finalDeaths + this._doublesDataInfo.finalDeaths + this._threesDataInfo.finalDeaths + this._foursDataInfo.finalDeaths,
-                this._soloDataInfo.wins + this._doublesDataInfo.wins + this._threesDataInfo.wins + this._foursDataInfo.wins,
-                this._soloDataInfo.losses + this._doublesDataInfo.losses + this._threesDataInfo.losses + this._foursDataInfo.losses,
-                this._soloDataInfo.bedsBroken + this._doublesDataInfo.bedsBroken + this._threesDataInfo.bedsBroken + this._foursDataInfo.bedsBroken
-        );
+        else {
+            this._totalInfo = new BedwarsData(
+                    this._soloDataInfo.kills + this._doublesDataInfo.kills + this._threesDataInfo.kills + this._foursDataInfo.kills,
+                    this._soloDataInfo.deaths + this._doublesDataInfo.deaths + this._threesDataInfo.deaths + this._foursDataInfo.deaths,
+                    this._soloDataInfo.finalKills + this._doublesDataInfo.finalKills + this._threesDataInfo.finalKills + this._foursDataInfo.finalKills,
+                    this._soloDataInfo.finalDeaths + this._doublesDataInfo.finalDeaths + this._threesDataInfo.finalDeaths + this._foursDataInfo.finalDeaths,
+                    this._soloDataInfo.wins + this._doublesDataInfo.wins + this._threesDataInfo.wins + this._foursDataInfo.wins,
+                    this._soloDataInfo.losses + this._doublesDataInfo.losses + this._threesDataInfo.losses + this._foursDataInfo.losses,
+                    this._soloDataInfo.bedsBroken + this._doublesDataInfo.bedsBroken + this._threesDataInfo.bedsBroken + this._foursDataInfo.bedsBroken
+            );
+        }
         return this;
     }
 
