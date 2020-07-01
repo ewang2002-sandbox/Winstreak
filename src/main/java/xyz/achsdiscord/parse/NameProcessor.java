@@ -1,8 +1,5 @@
 package xyz.achsdiscord.parse;
 
-import org.jetbrains.annotations.NotNull;
-import xyz.achsdiscord.util.Utility;
-
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -256,7 +253,7 @@ public class NameProcessor {
 
         // this should never be size 0
         if (possibleWidths.size() != 0) {
-            this._width = Utility.<Integer>mostCommon(possibleWidths);
+            this._width = this.<Integer>mostCommon(possibleWidths);
         }
 
         // now, let's make sure there aren't any random "particles" sitting around.
@@ -265,8 +262,7 @@ public class NameProcessor {
             // more than 10 particles means it's a name.
             if (numberOfParticles > 10) {
                 break;
-            }
-            else {
+            } else {
                 // probably leftovers from a skin with the same
                 // colors as one of the rank colors
                 for (int y = 0; y < this._img.getHeight(); y++) {
@@ -461,7 +457,12 @@ public class NameProcessor {
         return names;
     }
 
-    private boolean isValidColor(@NotNull Color color) {
+    /**
+     * Determines if a pixel is a valid color (one of the rank colors).
+     * @param color The color.
+     * @return Whether the color is valid or not.
+     */
+    private boolean isValidColor(Color color) {
         return color.getRGB() == MVP_PLUS_PLUS.getRGB()
                 || color.getRGB() == MVP_PLUS.getRGB()
                 || color.getRGB() == MVP.getRGB()
@@ -470,6 +471,13 @@ public class NameProcessor {
                 || color.getRGB() == NONE.getRGB();
     }
 
+    /**
+     * Crops the image.
+     * @param x The x-coordinate to start.
+     * @param y The y-coordinate to start.
+     * @param dx How far (with respect to x) you want to crop in the x-direction.
+     * @param dy How far (with respect to y) you want to crop in the y-direction.
+     */
     private void cropImage(int x, int y, int dx, int dy) {
         BufferedImage img = this._img.getSubimage(x, y, dx, dy);
         BufferedImage copyOfImage = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -479,6 +487,11 @@ public class NameProcessor {
         this._img = copyOfImage;
     }
 
+    /**
+     * Determines the number of particles in a line.
+     * @param y The y-line to check.
+     * @return The number of particles in that line. "0" means there are no lines (i.e. a separator).
+     */
     private int numberParticlesInHorizLine(final int y) {
         int particles = 0;
         for (int x = 0; x < this._img.getWidth(); x++) {
@@ -490,6 +503,11 @@ public class NameProcessor {
         return particles;
     }
 
+    /**
+     * Determines the number of particles in a line.
+     * @param x The x-line to check.
+     * @return The number of particles in that line. "0" means there are no lines (i.e. a separator).
+     */
     private int numberParticlesInVertLine(final int x) {
         int particles = 0;
         for (int y = 0; y < this._img.getHeight(); y++) {
@@ -501,7 +519,39 @@ public class NameProcessor {
         return particles;
     }
 
+    /**
+     * Returns the image at its current state.
+     * @return The image.
+     */
     public BufferedImage getImage() {
         return this._img;
+    }
+
+    /**
+     * Finds the msot common element in a List.
+     * @param list The list.
+     * @param <T> The list type.
+     * @return The most common element.
+     */
+    public <T> T mostCommon(List<T> list) {
+        Map<T, Integer> map = new HashMap<>();
+
+        for (T t : list) {
+            Integer val = map.get(t);
+            map.put(t, val == null ? 1 : val + 1);
+        }
+
+        Map.Entry<T, Integer> max = null;
+
+        for (Map.Entry<T, Integer> e : map.entrySet()) {
+            if (max == null || e.getValue() > max.getValue())
+                max = e;
+        }
+
+        if (max == null) {
+            return null;
+        }
+
+        return max.getKey();
     }
 }
