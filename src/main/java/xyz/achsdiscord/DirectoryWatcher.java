@@ -74,4 +74,8 @@ public class DirectoryWatcher {
             }
         }
     }
+
+    public static void processNames(List<String> names) {
+
+    }
 }
