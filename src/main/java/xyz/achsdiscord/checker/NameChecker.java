@@ -57,8 +57,8 @@ public class NameChecker {
                 }
             }
             catch (Exception e) {
-                e.printStackTrace();
                 // nothing for now
+                // probably a request error.
             }
         }
 

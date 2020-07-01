@@ -34,20 +34,16 @@ public class DirectoryWatcher {
                     StandardWatchEventKinds.OVERFLOW
             );
             key = watchService.take();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("[ERROR] Something went wrong when trying to initialize events. See stack trace below.");
             e.printStackTrace();
             return;
         }
 
-        List<String> names;
-        List<NameCheckerResults> results;
-
         // continuously check folder
         // also intellij, stop telling
         // me to not use infinite loop
-        for (;;) {
+        for (; ; ) {
             for (WatchEvent<?> event : key.pollEvents()) {
                 if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
                     continue;
@@ -66,7 +62,7 @@ public class DirectoryWatcher {
                             System.out.println("[INFO] Checking: " + event.context().toString());
                             long startImageProcessing = System.nanoTime();
 
-                            names = new NameProcessor(file)
+                            List<String> names = new NameProcessor(file)
                                     .cropImageIfFullScreen()
                                     .makeBlackAndWhiteAndGetWidth()
                                     .cropHeaderAndFooter()
@@ -79,16 +75,15 @@ public class DirectoryWatcher {
                             System.out.println("[INFO] Names: " + listOfNames);
 
                             long startTimeForReq = System.nanoTime();
-                            results = new NameChecker(names)
-                                    .setMinimumBrokenBedsNeeded(300)
-                                    .setMinimumFinalKillsNeeded(1000)
+                            List<NameCheckerResults> results = new NameChecker(names)
+                                    .setMinimumBrokenBedsNeeded(800)
+                                    .setMinimumFinalKillsNeeded(3000)
                                     .check();
                             long endTimeForReq = System.nanoTime();
                             System.out.println("[INFO] Sent " + names.size() + " API calls in " + ((endTimeForReq - startTimeForReq) * 1e-9) + " seconds.");
                             if (results.size() == 0) {
                                 System.out.println("[INFO] This lobby is good to go.");
-                            }
-                            else {
+                            } else {
                                 StringBuilder b = new StringBuilder();
                                 for (NameCheckerResults result : results) {
                                     b.append("⇒ Name: ").append(result.name)
@@ -101,13 +96,21 @@ public class DirectoryWatcher {
 
                             System.out.println("============================");
                         }
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         System.out.println("[ERROR] Error when checking file. Probably invalid screenshot. See error below.");
                         e.printStackTrace();
                     }
                 }
             }
+
+            // use thread.sleep to reduce
+            // cpu usage
+            try {
+                Thread.sleep(1);
+            } catch (Exception e) {
+
+            }
         }
+        // end loop
     }
 }
