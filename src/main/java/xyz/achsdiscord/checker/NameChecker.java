@@ -34,6 +34,7 @@ public class NameChecker {
     }
 
     public List<NameCheckerResults> check() {
+        @SuppressWarnings("unchecked")
         FutureTask[] nameResponses = new FutureTask[this._names.size()];
         for (int i = 0; i < this._names.size(); i++) {
             HypixelRequest req = new HypixelRequest(this._names.get(i));

@@ -2,23 +2,11 @@ package xyz.achsdiscord;
 
 import xyz.achsdiscord.checker.NameChecker;
 import xyz.achsdiscord.checker.NameCheckerResults;
-import xyz.achsdiscord.parse.InvalidImageException;
 import xyz.achsdiscord.parse.NameProcessor;
-import xyz.achsdiscord.request.BedwarsData;
-import xyz.achsdiscord.request.HypixelRequest;
-import xyz.achsdiscord.request.RequestParser;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.file.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 public class DirectoryWatcher {
@@ -108,7 +96,7 @@ public class DirectoryWatcher {
             try {
                 Thread.sleep(1);
             } catch (Exception e) {
-
+                // doesn't matter here.
             }
         }
         // end loop
