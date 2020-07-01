@@ -45,6 +45,8 @@ public class DirectoryWatcher {
         List<NameCheckerResults> results;
 
         // continuously check folder
+        // also intellij, stop telling
+        // me to not use infinite loop
         for (;;) {
             for (WatchEvent<?> event : key.pollEvents()) {
                 if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
@@ -89,7 +91,7 @@ public class DirectoryWatcher {
                             else {
                                 StringBuilder b = new StringBuilder();
                                 for (NameCheckerResults result : results) {
-                                    b.append("⇒ Name: " + result.name)
+                                    b.append("⇒ Name: ").append(result.name)
                                             .append(System.lineSeparator()).append("\tFinal Kills: ").append(result.finalKills)
                                             .append(System.lineSeparator()).append("\tBroken Beds: ").append(result.bedsDestroyed)
                                             .append(System.lineSeparator());
