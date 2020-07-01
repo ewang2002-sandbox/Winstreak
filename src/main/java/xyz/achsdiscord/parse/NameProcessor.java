@@ -3,6 +3,7 @@ package xyz.achsdiscord.parse;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -122,11 +123,11 @@ public class NameProcessor {
     /**
      * Creates a new NameProcessor object with the specified path to the image.
      *
-     * @param imgPath The path to the image.
+     * @param file The path to the image.
      * @throws IOException If the path is invalid.
      */
-    public NameProcessor(Path imgPath) throws IOException {
-        this._img = ImageIO.read(imgPath.toFile());
+    public NameProcessor(File file) throws IOException {
+        this._img = ImageIO.read(file);
     }
 
     /**
