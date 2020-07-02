@@ -27,8 +27,7 @@ public class HypixelRequest implements Callable<String> {
         StringBuilder builder = new StringBuilder();
         String str;
         while ((str = in.readLine()) != null) {
-            builder.append(str)
-                    .append(System.lineSeparator());
+            builder.append(str).append(System.lineSeparator());
         }
         return builder.toString();
     }
