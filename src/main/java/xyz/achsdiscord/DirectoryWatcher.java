@@ -2,7 +2,7 @@ package xyz.achsdiscord;
 
 import xyz.achsdiscord.checker.NameChecker;
 import xyz.achsdiscord.checker.NameCheckerResults;
-import xyz.achsdiscord.parse.NameProcessor;
+import xyz.achsdiscord.parse.LobbyNameParser;
 
 import java.io.File;
 import java.nio.file.*;
@@ -73,7 +73,7 @@ public class DirectoryWatcher {
 
                             long startImageProcessing = System.nanoTime();
 
-                            List<String> names = new NameProcessor(file)
+                            List<String> names = new LobbyNameParser(file)
                                     .cropImageIfFullScreen()
                                     .makeBlackAndWhiteAndGetWidth()
                                     .cropHeaderAndFooter()
@@ -123,6 +123,7 @@ public class DirectoryWatcher {
                                 points += results.size() * 2;
                             }
 
+                            // broken beds + final kills
                             if (results.size() != 0) {
                                 double percentTryHardBedsBroken = (double) tryhardBedsBroken / checker.getTotalBrokenBeds();
                                 if (percentTryHardBedsBroken >= 0.6) {

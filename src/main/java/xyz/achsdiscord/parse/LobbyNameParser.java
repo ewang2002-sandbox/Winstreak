@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class NameProcessor {
+public class LobbyNameParser {
     // rank colors
     public static final Color MVP_PLUS_PLUS = new Color(255, 170, 0);
     public static final Color MVP_PLUS = new Color(85, 255, 255);
@@ -115,7 +115,7 @@ public class NameProcessor {
      *
      * @param img The image.
      */
-    public NameProcessor(BufferedImage img) {
+    public LobbyNameParser(BufferedImage img) {
         this._img = img;
     }
 
@@ -125,7 +125,7 @@ public class NameProcessor {
      * @param file The path to the image.
      * @throws IOException If the path is invalid.
      */
-    public NameProcessor(File file) throws IOException {
+    public LobbyNameParser(File file) throws IOException {
         this._img = ImageIO.read(file);
     }
 
@@ -135,7 +135,7 @@ public class NameProcessor {
      * @param link The link to the image.
      * @throws IOException If the URL is invalid.
      */
-    public NameProcessor(URL link) throws IOException {
+    public LobbyNameParser(URL link) throws IOException {
         this._img = ImageIO.read(link);
     }
 
@@ -147,7 +147,7 @@ public class NameProcessor {
      * @return This object.
      * @throws InvalidImageException If the screenshot has no player list or the player list was taken with either clouds or other obstructions (i.e. not taken with just the sky).
      */
-    public NameProcessor cropImageIfFullScreen() throws InvalidImageException {
+    public LobbyNameParser cropImageIfFullScreen() throws InvalidImageException {
         if (this.calledCropIfFullScreen) {
             return this;
         }
@@ -208,7 +208,7 @@ public class NameProcessor {
      *
      * @return This object.
      */
-    public NameProcessor makeBlackAndWhiteAndGetWidth() {
+    public LobbyNameParser makeBlackAndWhiteAndGetWidth() {
         if (this.calledMakeBlkWtFunc) {
             return this;
         }
@@ -284,7 +284,7 @@ public class NameProcessor {
      * @return This object.
      * @throws InvalidImageException If the image wasn't processed through the {@code makeBlackAndWhiteAndGetWidth()} method.
      */
-    public NameProcessor cropHeaderAndFooter() throws InvalidImageException {
+    public LobbyNameParser cropHeaderAndFooter() throws InvalidImageException {
         if (this.calledCropHeaderFooter) {
             return this;
         }
@@ -350,7 +350,7 @@ public class NameProcessor {
      * @return The object.
      * @throws InvalidImageException If the image wasn't processed through the {@code makeBlackAndWhiteAndGetWidth()} method.
      */
-    public NameProcessor fixImage() throws InvalidImageException {
+    public LobbyNameParser fixImage() throws InvalidImageException {
         if (this.calledFixImgFunc) {
             return this;
         }
