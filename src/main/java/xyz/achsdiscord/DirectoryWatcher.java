@@ -1,7 +1,7 @@
 package xyz.achsdiscord;
 
-import xyz.achsdiscord.checker.NameChecker;
-import xyz.achsdiscord.checker.NameCheckerResults;
+import xyz.achsdiscord.request.checker.ResponseParser;
+import xyz.achsdiscord.request.checker.ResponseCheckerResults;
 import xyz.achsdiscord.parse.LobbyNameParser;
 
 import java.io.File;
@@ -82,11 +82,11 @@ public class DirectoryWatcher {
                             long endImageProcessing = System.nanoTime();
 
                             long startTimeForReq = System.nanoTime();
-                            NameChecker checker = new NameChecker(names)
+                            ResponseParser checker = new ResponseParser(names)
                                     .setMinimumBrokenBedsNeeded(brokenBeds)
                                     .setMinimumFinalKillsNeeded(finalKills);
 
-                            List<NameCheckerResults> results = checker.check();
+                            List<ResponseCheckerResults> results = checker.check();
                             long endTimeForReq = System.nanoTime();
 
                             double imageProcessingTime = (endImageProcessing - startImageProcessing) * 1e-9;
@@ -96,7 +96,7 @@ public class DirectoryWatcher {
                             int tryhardFinalKills = 0;
                             if (results.size() != 0) {
                                 StringBuilder b = new StringBuilder();
-                                for (NameCheckerResults result : results) {
+                                for (ResponseCheckerResults result : results) {
                                     tryhardBedsBroken += result.bedsDestroyed;
                                     tryhardFinalKills += result.finalKills;
                                     b.append("[PLAYER] Name: ").append(result.name).append(" (K = ").append(result.finalKills).append("; B = ").append(result.bedsDestroyed).append(")")

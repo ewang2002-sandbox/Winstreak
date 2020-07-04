@@ -1,14 +1,14 @@
-package xyz.achsdiscord.checker;
+package xyz.achsdiscord.request.checker;
 
 import xyz.achsdiscord.request.BedwarsData;
-import xyz.achsdiscord.request.HypixelRequest;
+import xyz.achsdiscord.request.PlanckeAPIRequester;
 import xyz.achsdiscord.request.RequestParser;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.FutureTask;
 
-public class NameChecker {
+public class ResponseParser {
     private final List<String> _names;
     private int _minimumBrokenBeds;
     private int _minimumFinalKills;
@@ -20,7 +20,7 @@ public class NameChecker {
      *
      * @param names The list of names.
      */
-    public NameChecker(List<String> names) {
+    public ResponseParser(List<String> names) {
         this(names, 250, 500);
     }
 
@@ -31,7 +31,7 @@ public class NameChecker {
      * @param minBeds       The minimum number of beds a person must have broken in order to be reported as a tryhard.
      * @param minFinalKills The minimum number of final kills a person must have in order to be reported as a tryhard.
      */
-    public NameChecker(List<String> names, int minBeds, int minFinalKills) {
+    public ResponseParser(List<String> names, int minBeds, int minFinalKills) {
         this._minimumFinalKills = minFinalKills;
         this._minimumBrokenBeds = minBeds;
         this._names = names;
@@ -43,7 +43,7 @@ public class NameChecker {
      * @param minBeds The number of broken beds.
      * @return This object.
      */
-    public NameChecker setMinimumBrokenBedsNeeded(int minBeds) {
+    public ResponseParser setMinimumBrokenBedsNeeded(int minBeds) {
         this._minimumBrokenBeds = minBeds;
         return this;
     }
@@ -54,7 +54,7 @@ public class NameChecker {
      * @param minFinalKills The number of final kills.
      * @return This object.
      */
-    public NameChecker setMinimumFinalKillsNeeded(int minFinalKills) {
+    public ResponseParser setMinimumFinalKillsNeeded(int minFinalKills) {
         this._minimumFinalKills = minFinalKills;
         return this;
     }
@@ -64,18 +64,17 @@ public class NameChecker {
      *
      * @return A list of names that meet the minimum final kills and broken beds needed to be considered a tryhard.
      */
-    public List<NameCheckerResults> check() {
-        @SuppressWarnings("unchecked")
+    public List<ResponseCheckerResults> check() {
         FutureTask[] nameResponses = new FutureTask[this._names.size()];
         for (int i = 0; i < this._names.size(); i++) {
-            HypixelRequest req = new HypixelRequest(this._names.get(i));
+            PlanckeAPIRequester req = new PlanckeAPIRequester(this._names.get(i));
             nameResponses[i] = new FutureTask<>(req);
 
             Thread t = new Thread(nameResponses[i]);
             t.start();
         }
 
-        List<NameCheckerResults> namesToWorryAbout = new ArrayList<>();
+        List<ResponseCheckerResults> namesToWorryAbout = new ArrayList<>();
 
         int totalBrokenBeds = 0;
         int totalFinalKills = 0;
@@ -88,7 +87,7 @@ public class NameChecker {
                 totalBrokenBeds += data.bedsBroken;
                 totalFinalKills += data.finalKills;
                 if (data.bedsBroken >= this._minimumBrokenBeds || data.finalKills >= this._minimumFinalKills) {
-                    NameCheckerResults results = new NameCheckerResults(this._names.get(i), data.bedsBroken, data.finalKills);
+                    ResponseCheckerResults results = new ResponseCheckerResults(this._names.get(i), data.bedsBroken, data.finalKills);
                     namesToWorryAbout.add(results);
                 }
             } catch (Exception e) {

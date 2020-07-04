@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class LobbyNameParser {
+public class LobbyNameParser implements INameParser {
     // rank colors
     public static final Color MVP_PLUS_PLUS = new Color(255, 170, 0);
     public static final Color MVP_PLUS = new Color(85, 255, 255);

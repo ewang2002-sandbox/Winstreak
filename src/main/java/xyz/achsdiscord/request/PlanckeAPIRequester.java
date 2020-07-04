@@ -8,10 +8,10 @@ import java.net.URL;
 import java.util.Random;
 import java.util.concurrent.Callable;
 
-public class HypixelRequest implements Callable<String> {
+public class PlanckeAPIRequester implements Callable<String> {
     private final String _name;
 
-    public HypixelRequest(String name) {
+    public PlanckeAPIRequester(String name) {
         this._name = name;
     }
 
