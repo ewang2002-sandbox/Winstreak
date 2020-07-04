@@ -1,10 +1,15 @@
 package xyz.achsdiscord;
 
+import xyz.achsdiscord.parse.InGameNameParser;
+import xyz.achsdiscord.parse.InvalidImageException;
+import xyz.achsdiscord.parse.util.ParserUtility;
 import xyz.achsdiscord.request.checker.ResponseParser;
 import xyz.achsdiscord.request.checker.ResponseCheckerResults;
 import xyz.achsdiscord.parse.LobbyNameParser;
 
+import javax.imageio.ImageIO;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +23,20 @@ public class DirectoryWatcher {
     public static final String ANSI_CYAN = "\u001B[36m";
     public static final String ANSI_GREEN = "\u001B[32m";
 
+    public static int dirWatchFinalKills;
+    public static int dirWatchBrokenBeds;
+    public static int dirWatchTryhards;
+    public static List<String> dirWatchExemptPlayers;
+
+    static {
+        final List<String> exemptPlayers = new ArrayList<>();
+        exemptPlayers.add("CM19");
+        exemptPlayers.add("icicl");
+        exemptPlayers.add("Sichrylan");
+        exemptPlayers.add("hedwig10");
+        exemptPlayers.add("stanner321");
+        dirWatchExemptPlayers = exemptPlayers;
+    }
 
     public static void startMonitoring(
             final Path path,
@@ -25,13 +44,9 @@ public class DirectoryWatcher {
             final int brokenBeds,
             final int amtTryHardsUntilLeave
     ) {
-        // people to exclude
-        final List<String> exemptPlayers = new ArrayList<>();
-        exemptPlayers.add("CM19");
-        exemptPlayers.add("icicl");
-        exemptPlayers.add("Sichrylan");
-        exemptPlayers.add("hedwig10");
-        exemptPlayers.add("stanner321");
+        dirWatchFinalKills = finalKills;
+        dirWatchBrokenBeds = brokenBeds;
+        dirWatchTryhards = amtTryHardsUntilLeave;
 
         // initialize watchers
         WatchService watchService;
@@ -71,101 +86,13 @@ public class DirectoryWatcher {
                             // process file
                             System.out.println("[INFO] Checking: " + event.context().toString());
 
-                            long startImageProcessing = System.nanoTime();
-
-                            List<String> names = new LobbyNameParser(file)
-                                    .cropImageIfFullScreen()
-                                    .makeBlackAndWhiteAndGetWidth()
-                                    .cropHeaderAndFooter()
-                                    .fixImage()
-                                    .getPlayerNames(exemptPlayers);
-                            long endImageProcessing = System.nanoTime();
-
-                            long startTimeForReq = System.nanoTime();
-                            ResponseParser checker = new ResponseParser(names)
-                                    .setMinimumBrokenBedsNeeded(brokenBeds)
-                                    .setMinimumFinalKillsNeeded(finalKills);
-
-                            List<ResponseCheckerResults> results = checker.check();
-                            long endTimeForReq = System.nanoTime();
-
-                            double imageProcessingTime = (endImageProcessing - startImageProcessing) * 1e-9;
-                            double apiRequestsTime = (endTimeForReq - startTimeForReq) * 1e-9;
-
-                            int tryhardBedsBroken = 0;
-                            int tryhardFinalKills = 0;
-                            if (results.size() != 0) {
-                                StringBuilder b = new StringBuilder();
-                                for (ResponseCheckerResults result : results) {
-                                    tryhardBedsBroken += result.bedsDestroyed;
-                                    tryhardFinalKills += result.finalKills;
-                                    b.append("[PLAYER] Name: ").append(result.name).append(" (K = ").append(result.finalKills).append("; B = ").append(result.bedsDestroyed).append(")")
-                                            .append(System.lineSeparator());
-                                }
-                                System.out.println(b.toString());
-                            }
-
-                            System.out.println("[INFO] Tryhards: " + results.size());
-                            System.out.println("[INFO] Tryhard Final Kills: " + tryhardFinalKills);
-                            System.out.println("[INFO] Tryhard Broken Beds: " + tryhardBedsBroken);
-                            System.out.println("[INFO] Total Final Kills: " + checker.getTotalFinalKills());
-                            System.out.println("[INFO] Total Broken Beds: " + checker.getTotalBrokenBeds());
-                            System.out.println("[INFO] Image Processing Time: " + imageProcessingTime + " SEC.");
-                            System.out.println("[INFO] API Requests Time: " + apiRequestsTime + " SEC.");
-
-                            boolean hasTooManyTryHards = results.size() >= amtTryHardsUntilLeave;
-                            int points = 0;
-                            // tryhards
-                            if (hasTooManyTryHards) {
-                                points += 15;
+                            if (ParserUtility.ParserUtil.isInLobby(ImageIO.read(file))) {
+                                lobbyCheck(file);
                             }
                             else {
-                                points += results.size() * 2;
+                                inGameCheck(file);
                             }
 
-                            // broken beds + final kills
-                            if (results.size() != 0) {
-                                double percentTryHardBedsBroken = (double) tryhardBedsBroken / checker.getTotalBrokenBeds();
-                                if (percentTryHardBedsBroken >= 0.6) {
-                                    points += 6;
-                                }
-                                else if (percentTryHardBedsBroken >= 0.5) {
-                                    points += 5;
-                                }
-                                else if (percentTryHardBedsBroken >= 0.3) {
-                                    points += 1;
-                                }
-
-                                double percentTryHardFinalKills = (double) tryhardFinalKills / checker.getTotalFinalKills();
-                                if (percentTryHardFinalKills >= 0.8) {
-                                    points += 5;
-                                }
-                                else if (percentTryHardFinalKills >= 0.5) {
-                                    points += 3;
-                                }
-                                else if (percentTryHardFinalKills >= 0.3) {
-                                    points += 1;
-                                }
-                            }
-
-                            // average beds between
-                            if (15 <= points) {
-                                System.out.println(ANSI_RED + "[INFO] Safety Level: LEAVE NOW." + ANSI_RESET);
-                            }
-                            else if (10 <= points) {
-                                System.out.println(ANSI_YELLOW + "[INFO] Safety Level: SOMEWHAT DANGEROUS." + ANSI_RESET);
-                            }
-                            else if (6 <= points){
-                                System.out.println(ANSI_BLUE + "[INFO] Safety Level: SOMEWHAT SAFE." + ANSI_RESET);
-                            }
-                            else if (3 <= points) {
-                                System.out.println(ANSI_CYAN + "[INFO] Safety Label: PRETTY SAFE" + ANSI_RESET);
-                            }
-                            else {
-                                System.out.println(ANSI_GREEN + "[INFO] Safety Level: SAFE." + ANSI_RESET);
-                            }
-
-                            System.out.println("=====================================");
                         }
                     } catch (Exception e) {
                         System.out.println("[ERROR] Error when checking file. See error below.");
@@ -183,5 +110,59 @@ public class DirectoryWatcher {
             }
         }
         // end loop
+    }
+
+    public static void lobbyCheck(final File file) throws IOException, InvalidImageException {
+        long startImageProcessing = System.nanoTime();
+
+        LobbyNameParser names = new LobbyNameParser(file)
+                .cropImageIfFullScreen()
+                .adjustColorsAndIdentifyWidth()
+                .cropHeaderAndFooter()
+                .fixImage();
+        List<String> allNames = names.getPlayerNames(dirWatchExemptPlayers);
+        long endImageProcessing = System.nanoTime();
+
+        long startTimeForReq = System.nanoTime();
+        ResponseParser checker = new ResponseParser(allNames)
+                .setMinimumBrokenBedsNeeded(dirWatchBrokenBeds)
+                .setMinimumFinalKillsNeeded(dirWatchFinalKills);
+
+        List<ResponseCheckerResults> results = checker.check();
+        long endTimeForReq = System.nanoTime();
+
+        double imageProcessingTime = (endImageProcessing - startImageProcessing) * 1e-9;
+        double apiRequestsTime = (endTimeForReq - startTimeForReq) * 1e-9;
+
+        int tryhardBedsBroken = 0;
+        int tryhardFinalKills = 0;
+        if (results.size() != 0) {
+            StringBuilder b = new StringBuilder();
+            for (ResponseCheckerResults result : results) {
+                tryhardBedsBroken += result.bedsDestroyed;
+                tryhardFinalKills += result.finalKills;
+                b.append("[PLAYER] Name: ").append(result.name).append(" (K = ").append(result.finalKills).append("; B = ").append(result.bedsDestroyed).append(")")
+                        .append(System.lineSeparator());
+            }
+            System.out.println(b.toString());
+        }
+
+        System.out.println("[INFO] Errored: " + checker.getErroredUsers().size());
+        System.out.println("[INFO] Tryhards: " + results.size());
+        System.out.println("[INFO] Total: " + allNames.size());
+        System.out.println("[INFO] Tryhard Final Kills: " + tryhardFinalKills);
+        System.out.println("[INFO] Tryhard Broken Beds: " + tryhardBedsBroken);
+        System.out.println("[INFO] Total Final Kills: " + checker.getTotalFinalKills());
+        System.out.println("[INFO] Total Broken Beds: " + checker.getTotalBrokenBeds());
+        System.out.println("[INFO] Image Processing Time: " + imageProcessingTime + " SEC.");
+        System.out.println("[INFO] API Requests Time: " + apiRequestsTime + " SEC.");
+
+        // TODO implement point system
+
+        System.out.println("=====================================");
+    }
+
+    public static void inGameCheck(final File file) {
+
     }
 }

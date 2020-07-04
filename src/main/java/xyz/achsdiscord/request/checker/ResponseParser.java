@@ -15,6 +15,8 @@ public class ResponseParser {
     private int _totalBedsDestroyed;
     private int _totalFinalKills;
 
+    private List<String> _erroredUsers;
+
     /**
      * Creates a new NameChecker class with a list of given names and the default parameters of 250 broken beds and 500 final kills.
      *
@@ -35,6 +37,7 @@ public class ResponseParser {
         this._minimumFinalKills = minFinalKills;
         this._minimumBrokenBeds = minBeds;
         this._names = names;
+        this._erroredUsers = new ArrayList<>();
     }
 
     /**
@@ -86,18 +89,30 @@ public class ResponseParser {
                         .getTotalDataInfo();
                 totalBrokenBeds += data.bedsBroken;
                 totalFinalKills += data.finalKills;
+                // we have a tryhard!
                 if (data.bedsBroken >= this._minimumBrokenBeds || data.finalKills >= this._minimumFinalKills) {
                     ResponseCheckerResults results = new ResponseCheckerResults(this._names.get(i), data.bedsBroken, data.finalKills);
                     namesToWorryAbout.add(results);
                 }
             } catch (Exception e) {
-                System.out.println("[ERROR] An error occurred when checking " + this._names.get(i) + "'s profile.");
+                // errored user
+                this._erroredUsers.add(this._names.get(i));
             }
         }
 
         this._totalFinalKills = totalFinalKills;
         this._totalBedsDestroyed = totalBrokenBeds;
         return namesToWorryAbout;
+    }
+
+    /**
+     * Returns a list of users that received an error upon checking profile. This is commonly due to the user being nicked (i.e. no formal profile found).
+     * You must call the {@code check()} method first.
+     *
+     * @return A list of users that had errors when checking on their profile.
+     */
+    public List<String> getErroredUsers() {
+        return this._erroredUsers;
     }
 
     /**

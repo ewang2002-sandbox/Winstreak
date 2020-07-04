@@ -11,10 +11,20 @@ import java.util.concurrent.Callable;
 public class PlanckeAPIRequester implements Callable<String> {
     private final String _name;
 
+    /**
+     * Creates a new PlanckeAPIRequester object. One object should be created per thread.
+     * @param name The name to check.
+     */
     public PlanckeAPIRequester(String name) {
         this._name = name;
     }
 
+    /**
+     * Makes a request to Plancke's website, which is simply a public stats browser for all players in Hypixel. I chose to use Plancke's website instead of making a call directly to Hypixel's API because of the possibility of a ban.
+     *
+     * @return The raw HTML output of the website.
+     * @throws IOException Thrown if something is wrong with the output.
+     */
     public String call() throws IOException {
         final String FINAL_URL = "https://plancke.io/hypixel/player/stats/" + this._name;
 
@@ -32,6 +42,11 @@ public class PlanckeAPIRequester implements Callable<String> {
         return builder.toString();
     }
 
+    /**
+     * Generates a random IP address.
+     *
+     * @return A random IP address.
+     */
     private String generateRandomIpAddress() {
         Random r = new Random();
         return r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256);

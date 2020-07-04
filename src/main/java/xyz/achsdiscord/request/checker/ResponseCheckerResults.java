@@ -1,6 +1,6 @@
 package xyz.achsdiscord.request.checker;
 
-public class ResponseCheckerResults {
+public final class ResponseCheckerResults {
     public final String name;
     public final int bedsDestroyed;
     public final int finalKills;

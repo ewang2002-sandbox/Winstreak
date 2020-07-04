@@ -1,6 +1,6 @@
 package xyz.achsdiscord.request;
 
-public class BedwarsData {
+public final class BedwarsData {
     public final int kills;
     public final int deaths;
     public final double killDeathRatio;

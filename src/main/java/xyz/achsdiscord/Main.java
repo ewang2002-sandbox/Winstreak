@@ -1,3 +1,5 @@
+// old WORKING commit
+// https://github.com/ewang2002/WinstreakBot/commit/813d8e91b5c16d8bb3c99a4ac8c864762f23d967
 package xyz.achsdiscord;
 
 import java.nio.file.Path;
@@ -5,9 +7,9 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        int brokenBeds = -1;
-        int finalKills = -1;
-        int amtTryHards = -1;
+        int brokenBeds;
+        int finalKills;
+        int amtTryHards;
 
         try (Scanner scanner = new Scanner(System.in)) {
             while (true) {

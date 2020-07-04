@@ -1,7 +1,5 @@
 package xyz.achsdiscord.parse;
 
-import static xyz.achsdiscord.parse.util.ParserUtility.ParserUtil.*;
-
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -9,94 +7,36 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class LobbyNameParser implements INameParser {
-    // rank colors
-    public static final Color MVP_PLUS_PLUS = new Color(255, 170, 0);
-    public static final Color MVP_PLUS = new Color(85, 255, 255);
-    public static final Color MVP = new Color(85, 255, 255);
-    public static final Color VIP_PLUS = new Color(85, 255, 85);
-    public static final Color VIP = new Color(85, 255, 85);
-    public static final Color NONE = new Color(170, 170, 170);
+import static xyz.achsdiscord.parse.LobbyNameParser.LISTED_NUMS_OFFSET;
+import static xyz.achsdiscord.parse.util.ParserUtility.ParserUtil.*;
 
-    public static final Map<String, String> binaryToCharacters;
-    static {
-        binaryToCharacters = new HashMap<>();
-        binaryToCharacters.put("011111001111111010000010101000101011111010111100", "");
-        binaryToCharacters.put("111111101111111010100000101000001111111001011110", "");
-        binaryToCharacters.put("100000001100000001111110011111101100000010000000", "");
-        binaryToCharacters.put("111111101111111010100010101000101111111001011100", "");
-        binaryToCharacters.put("0111110010001010100100101010001001111100", "0");
-        binaryToCharacters.put("0000001001000010111111100000001000000010", "1");
-        binaryToCharacters.put("0100011010001010100100101001001001100110", "2");
-        binaryToCharacters.put("0100010010000010100100101001001001101100", "3");
-        binaryToCharacters.put("0001100000101000010010001000100011111110", "4");
-        binaryToCharacters.put("1110010010100010101000101010001010011100", "5");
-        binaryToCharacters.put("0011110001010010100100101001001000001100", "6");
-        binaryToCharacters.put("1100000010000000100011101001000011100000", "7");
-        binaryToCharacters.put("0110110010010010100100101001001001101100", "8");
-        binaryToCharacters.put("0110000010010010100100101001010001111000", "9");
-        binaryToCharacters.put("0000000100000001000000010000000100000001", "_");
-        binaryToCharacters.put("0111111010100000101000001010000001111110", "A");
-        binaryToCharacters.put("0000010000101010001010100010101000011110", "a");
-        binaryToCharacters.put("1111111010100010101000101010001001011100", "B");
-        binaryToCharacters.put("1111111000010010001000100010001000011100", "b");
-        binaryToCharacters.put("0111110010000010100000101000001001000100", "C");
-        binaryToCharacters.put("0001110000100010001000100010001000010100", "c");
-        binaryToCharacters.put("1111111010000010100000101000001001111100", "D");
-        binaryToCharacters.put("0001110000100010001000100001001011111110", "d");
-        binaryToCharacters.put("1111111010100010101000101000001010000010", "E");
-        binaryToCharacters.put("0001110000101010001010100010101000011010", "e");
-        binaryToCharacters.put("1111111010100000101000001000000010000000", "F");
-        binaryToCharacters.put("00100000011111101010000010100000", "f");
-        binaryToCharacters.put("0111110010000010100000101010001010111100", "G");
-        binaryToCharacters.put("0001100100100101001001010010010100111110", "g");
-        binaryToCharacters.put("1111111000100000001000000010000011111110", "H");
-        binaryToCharacters.put("1111111000010000001000000010000000011110", "h");
-        binaryToCharacters.put("100000101111111010000010", "I");
-        binaryToCharacters.put("10111110", "i");
-        binaryToCharacters.put("0000010000000010000000100000001011111100", "J");
-        binaryToCharacters.put("0000011000000001000000010000000110111110", "j");
-        binaryToCharacters.put("1111111000100000001000000101000010001110", "K");
-        binaryToCharacters.put("11111110000010000001010000100010", "k");
-        binaryToCharacters.put("1111111000000010000000100000001000000010", "L");
-        binaryToCharacters.put("1111110000000010", "l");
-        binaryToCharacters.put("1111111001000000001000000100000011111110", "M");
-        binaryToCharacters.put("0011111000100000000110000010000000011110", "m");
-        binaryToCharacters.put("1111111001000000001000000001000011111110", "N");
-        binaryToCharacters.put("0011111000100000001000000010000000011110", "n");
-        binaryToCharacters.put("0111110010000010100000101000001001111100", "O");
-        binaryToCharacters.put("0001110000100010001000100010001000011100", "o");
-        binaryToCharacters.put("1111111010100000101000001010000001000000", "P");
-        binaryToCharacters.put("0011111100010100001001000010010000011000", "p");
-        binaryToCharacters.put("0111110010000010100000101000010001111010", "Q");
-        binaryToCharacters.put("0001100000100100001001000001010000111111", "q");
-        binaryToCharacters.put("1111111010100000101000001010000001011110", "R");
-        binaryToCharacters.put("0011111000010000001000000010000000010000", "r");
-        binaryToCharacters.put("0100010010100010101000101010001010011100", "S");
-        binaryToCharacters.put("0001001000101010001010100010101000100100", "s");
-        binaryToCharacters.put("1000000010000000111111101000000010000000", "T");
-        binaryToCharacters.put("001000001111110000100010", "t");
-        binaryToCharacters.put("1111110000000010000000100000001011111100", "U");
-        binaryToCharacters.put("0011110000000010000000100000001000111110", "u");
-        binaryToCharacters.put("1111000000001100000000100000110011110000", "V");
-        binaryToCharacters.put("0011100000000100000000100000010000111000", "v");
-        binaryToCharacters.put("1111111000000100000010000000010011111110", "W");
-        binaryToCharacters.put("0011110000000010000011100000001000111110", "w");
-        binaryToCharacters.put("1000111001010000001000000101000010001110", "X");
-        binaryToCharacters.put("0010001000010100000010000001010000100010", "x");
-        binaryToCharacters.put("1000000001000000001111100100000010000000", "Y");
-        binaryToCharacters.put("0011100100000101000001010000010100111110", "y");
-        binaryToCharacters.put("1000011010001010100100101010001011000010", "Z");
-        binaryToCharacters.put("0010001000100110001010100011001000100010", "z");
+public class InGameNameParser implements INameParser {
+    /**
+     * All possible team colors for 3v3v3v3 and 4v4v4v4.
+     */
+    private enum TeamColors {
+        BLUE,
+        GREEN,
+        RED,
+        YELLOW
     }
 
-    public static final int DEFAULT_WIDTH = 2;
-    public static final int LISTED_NUMS_OFFSET = 30;
+    // TODO get other doubles team colors
+
+    public static final Color BLUE_TEAM_COLOR = new Color(0x5555FF);
+    public static final Color GREEN_TEAM_COLOR = new Color(0x55FF55);
+    // red team color is the same as the color of
+    // STORE.HYPIXEL.NET link at bottom of player list
+    public static final Color RED_TEAM_COLOR = new Color(0xFF5555);
+    public static final Color YELLOW_TEAM_COLOR = new Color(0xFFFF55);
+
+    // this is the color that is used in
+    // "You are playing on..."
+    public static final Color YOU_ARE_PLAYING_ON_COLOR = new Color(85, 255, 255);
 
     // private general variables
     private BufferedImage _img;
@@ -109,21 +49,12 @@ public class LobbyNameParser implements INameParser {
     private boolean calledFixImgFunc = false;
 
     /**
-     * Creates a new NameProcessor object with the specified BufferedImage.
-     *
-     * @param img The image.
-     */
-    public LobbyNameParser(BufferedImage img) {
-        this._img = img;
-    }
-
-    /**
      * Creates a new NameProcessor object with the specified path to the image.
      *
      * @param file The path to the image.
      * @throws IOException If the path is invalid.
      */
-    public LobbyNameParser(File file) throws IOException {
+    public InGameNameParser(File file) throws IOException {
         this._img = ImageIO.read(file);
     }
 
@@ -133,18 +64,19 @@ public class LobbyNameParser implements INameParser {
      * @param link The link to the image.
      * @throws IOException If the URL is invalid.
      */
-    public LobbyNameParser(URL link) throws IOException {
+    public InGameNameParser(URL link) throws IOException {
         this._img = ImageIO.read(link);
     }
 
     /**
      * If the screenshot provided is a screenshot that shows the entire Minecraft application, call this method first to crop the screenshot appropriately.
+     * <p>Note that the person must take a screenshot of the player list in the blue sky.
      * <p>If you use a screenshot that shows the entire Minecraft application, you MUST run this method first.
      *
      * @return This object.
      * @throws InvalidImageException If the screenshot has no player list.
      */
-    public LobbyNameParser cropImageIfFullScreen() throws InvalidImageException {
+    public InGameNameParser cropImageIfFullScreen() throws InvalidImageException {
         if (this.calledCropIfFullScreen) {
             return this;
         }
@@ -159,7 +91,7 @@ public class LobbyNameParser implements INameParser {
         major:
         for (int y = 0; y < this._img.getHeight(); y++) {
             for (int x = 0; x < this._img.getWidth(); x++) {
-                if (this._img.getRGB(x, y) == BOSS_BAR_COLOR.getRGB()) {
+                if (this._img.getRGB(x, y) == YOU_ARE_PLAYING_ON_COLOR.getRGB()) {
                     topLeftX = x;
                     topLeftY = y;
                     break major;
@@ -199,14 +131,15 @@ public class LobbyNameParser implements INameParser {
         return this;
     }
 
+
     /**
-     * Makes the image black and white for easier processing. This will also get the width of each character, which will be used later.
+     * Makes everything but the team colors white. This will also get the width of each character, which will be used later.
      * <p> You must call this method, regardless of screenshot type.
-     * <p> If the screenshot provided shows all of Minecraft, you must run {@code cropImageIfFullScreen()} first.
+     * <p> If the screenshot provided shows all of Minecraft, you must run {@code adjustColorsAndIdentifyWidth()} first.
      *
      * @return This object.
      */
-    public LobbyNameParser adjustColorsAndIdentifyWidth() {
+    public InGameNameParser adjustColorsAndIdentifyWidth() {
         if (this.calledMakeBlkWtFunc) {
             return this;
         }
@@ -217,7 +150,7 @@ public class LobbyNameParser implements INameParser {
         boolean hasTestedWidth = false;
         List<Integer> possibleWidths = new ArrayList<>();
 
-        // make image black and white.
+        // make everything white except for the team colors
         for (int y = 0; y < this._img.getHeight(); y++) {
             int width = 0;
             for (int x = 0; x < this._img.getWidth(); x++) {
@@ -225,7 +158,6 @@ public class LobbyNameParser implements INameParser {
 
                 if (this.isValidColor(color)) {
                     foundLineWithValidColor = true;
-                    this._img.setRGB(x, y, Color.black.getRGB());
                 } else {
                     this._img.setRGB(x, y, Color.white.getRGB());
                 }
@@ -264,7 +196,7 @@ public class LobbyNameParser implements INameParser {
                 // probably leftovers from a skin with the same
                 // colors as one of the rank colors
                 for (int y = 0; y < this._img.getHeight(); y++) {
-                    if (this._img.getRGB(x, y) == Color.black.getRGB()) {
+                    if (this.isValidColor(new Color(this._img.getRGB(x, y)))) {
                         this._img.setRGB(x, y, Color.white.getRGB());
                     }
                 }
@@ -282,7 +214,7 @@ public class LobbyNameParser implements INameParser {
      * @return This object.
      * @throws InvalidImageException If the image wasn't processed through the {@code adjustColorsAndIdentifyWidth()} method.
      */
-    public LobbyNameParser cropHeaderAndFooter() throws InvalidImageException {
+    public InGameNameParser cropHeaderAndFooter() throws InvalidImageException {
         if (this.calledCropHeaderFooter) {
             return this;
         }
@@ -342,13 +274,13 @@ public class LobbyNameParser implements INameParser {
     }
 
     /**
-     * Attempts to crop the image so ONLY the player names show up. The picture must have been made black and white.
+     * Attempts to crop the image so ONLY the player names show up. The picture must have processed.
      * <p>You must call this method.
      *
      * @return The object.
      * @throws InvalidImageException If the image wasn't processed through the {@code adjustColorsAndIdentifyWidth()} method.
      */
-    public LobbyNameParser fixImage() throws InvalidImageException {
+    public InGameNameParser fixImage() throws InvalidImageException {
         if (this.calledFixImgFunc) {
             return this;
         }
@@ -363,7 +295,7 @@ public class LobbyNameParser implements INameParser {
         // left to right, top to bottom
         for (int y = 0; y < this._img.getHeight(); y++) {
             for (int x = 0; x < this._img.getWidth(); x++) {
-                if (this._img.getRGB(x, y) == Color.black.getRGB()) {
+                if (this.isValidColor(new Color(this._img.getRGB(x, y)))) {
                     if (x < minStartingXVal) {
                         minStartingXVal = x;
                     }
@@ -386,15 +318,47 @@ public class LobbyNameParser implements INameParser {
 
         // make new copy of the image
         this._img = cropImage(this._img, startingXVal, startingYVal, this._img.getWidth() - startingXVal, this._img.getHeight() - startingYVal);
+        // now we need to determine where to start
 
+        // let's remove any blanks
+        int y = 0;
+        for (; y < this._img.getHeight(); y++) {
+            if (this.isValidColor(new Color(this._img.getRGB(0, y)))
+                && this.isValidColor(new Color(this._img.getRGB(this._width, y)))) {
+                break;
+            }
+        }
+
+        // now let's try again
+        // but this time we're going to look
+        // for the separator between the B/R/G/Y and the names of teammates
+        boolean foundYSep = false;
+        int x = 0;
+        for (; x < this._img.getWidth(); x++) {
+            int numberParticles = this.numberParticlesInVertLine(x);
+            if (numberParticles == 0 && !foundYSep) {
+                foundYSep = true;
+            }
+
+            if (foundYSep) {
+                if (numberParticles == 0) {
+                    continue;
+                }
+
+                break;
+            }
+        }
+        // now we need to determine where to start
+
+        // make another copy
+        this._img = cropImage(this._img, x, y, this._img.getWidth() - x, this._img.getHeight() - y);
+
+        // we're going to crop one more time
+        // but this time, we're going to look
         return this;
     }
 
-    /**
-     * Gets the player names. If you do not call the appropriate methods, this method will return an empty list.
-     *
-     * @return A list of names that were in the screenshot.
-     */
+    @Override
     public List<String> getPlayerNames() {
         return this.getPlayerNames(new ArrayList<>());
     }
@@ -445,8 +409,8 @@ public class LobbyNameParser implements INameParser {
                     ttlBytes = new StringBuilder(ttlBytes.substring(0, ttlBytes.length() - 8));
                 }
 
-                if (binaryToCharacters.containsKey(ttlBytes.toString())) {
-                    name.append(binaryToCharacters.get(ttlBytes.toString()));
+                if (LobbyNameParser.binaryToCharacters.containsKey(ttlBytes.toString())) {
+                    name.append(LobbyNameParser.binaryToCharacters.get(ttlBytes.toString()));
                 } else {
                     break;
                 }
@@ -473,21 +437,10 @@ public class LobbyNameParser implements INameParser {
      * @return Whether the color is valid or not.
      */
     private boolean isValidColor(Color color) {
-        return color.getRGB() == MVP_PLUS_PLUS.getRGB()
-                || color.getRGB() == MVP_PLUS.getRGB()
-                || color.getRGB() == MVP.getRGB()
-                || color.getRGB() == VIP_PLUS.getRGB()
-                || color.getRGB() == VIP.getRGB()
-                || color.getRGB() == NONE.getRGB();
-    }
-
-    /**
-     * Returns the image at its current state.
-     *
-     * @return The image.
-     */
-    public BufferedImage getImage() {
-        return this._img;
+        return color.getRGB() == RED_TEAM_COLOR.getRGB()
+                || color.getRGB() == BLUE_TEAM_COLOR.getRGB()
+                || color.getRGB() == YELLOW_TEAM_COLOR.getRGB()
+                || color.getRGB() == GREEN_TEAM_COLOR.getRGB();
     }
 
     /**
@@ -496,10 +449,10 @@ public class LobbyNameParser implements INameParser {
      * @param y The y-line to check.
      * @return The number of particles in that line. "0" means there are no lines (i.e. a separator).
      */
-    public int numberParticlesInHorizLine(final int y) {
+    private int numberParticlesInHorizLine(final int y) {
         int particles = 0;
         for (int x = 0; x < this._img.getWidth(); x++) {
-            if (this._img.getRGB(x, y) == Color.black.getRGB()) {
+            if (this.isValidColor(new Color(this._img.getRGB(x, y)))) {
                 particles++;
             }
         }
@@ -513,14 +466,18 @@ public class LobbyNameParser implements INameParser {
      * @param x The x-line to check.
      * @return The number of particles in that line. "0" means there are no lines (i.e. a separator).
      */
-    public int numberParticlesInVertLine(final int x) {
+    private int numberParticlesInVertLine(final int x) {
         int particles = 0;
         for (int y = 0; y < this._img.getHeight(); y++) {
-            if (this._img.getRGB(x, y) == Color.black.getRGB()) {
+            if (this.isValidColor(new Color(this._img.getRGB(x, y)))) {
                 particles++;
             }
         }
 
         return particles;
+    }
+
+    public BufferedImage getImage() {
+        return this._img;
     }
 }

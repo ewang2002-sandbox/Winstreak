@@ -13,7 +13,8 @@ public class RequestParser {
 
     /**
      * Parses the raw HTML data, which was from the HypixelRequest class.
-     * @param htmlContent The HTML String.
+     * @param name The name associated with the raw response.
+     * @param htmlContent The raw response from the request (from {@code PlanckeAPIRequester}).
      */
     public RequestParser(String name, String htmlContent) {
         this._htmlContent = htmlContent;
@@ -21,7 +22,7 @@ public class RequestParser {
     }
 
     /**
-     * Parses the raw HTML data.
+     * Parses the raw HTML data. After this method is executed, all getters will be available for use.
      * @return This object.
      */
     public RequestParser parse() {
