@@ -1,8 +1,8 @@
 package xyz.achsdiscord;
 
+import xyz.achsdiscord.parse.AbstractNameParser;
 import xyz.achsdiscord.parse.InGameNameParser;
 import xyz.achsdiscord.parse.InvalidImageException;
-import xyz.achsdiscord.parse.util.ParserUtility;
 import xyz.achsdiscord.request.checker.ResponseParser;
 import xyz.achsdiscord.request.checker.ResponseCheckerResults;
 import xyz.achsdiscord.parse.LobbyNameParser;
@@ -86,10 +86,9 @@ public class DirectoryWatcher {
                             // process file
                             System.out.println("[INFO] Checking: " + event.context().toString());
 
-                            if (ParserUtility.ParserUtil.isInLobby(ImageIO.read(file))) {
+                            if (AbstractNameParser.isInLobby(ImageIO.read(file))) {
                                 lobbyCheck(file);
-                            }
-                            else {
+                            } else {
                                 inGameCheck(file);
                             }
 
@@ -115,11 +114,12 @@ public class DirectoryWatcher {
     public static void lobbyCheck(final File file) throws IOException, InvalidImageException {
         long startImageProcessing = System.nanoTime();
 
-        LobbyNameParser names = new LobbyNameParser(file)
-                .cropImageIfFullScreen()
-                .adjustColorsAndIdentifyWidth()
-                .cropHeaderAndFooter()
-                .fixImage();
+        LobbyNameParser names = new LobbyNameParser(file);
+        names.cropImageIfFullScreen();
+        names.adjustColorsAndIdentifyWidth();
+        names.cropHeaderAndFooter();
+        names.fixImage();
+
         List<String> allNames = names.getPlayerNames(dirWatchExemptPlayers);
         long endImageProcessing = System.nanoTime();
 
@@ -159,10 +159,22 @@ public class DirectoryWatcher {
 
         // TODO implement point system
 
+        File outputfile = new File("C:\\Users\\ewang\\Desktop\\Output\\imageLOBBY.png");
+        ImageIO.write(names.getImage(), "png", outputfile);
+
         System.out.println("=====================================");
     }
 
-    public static void inGameCheck(final File file) {
+    public static void inGameCheck(final File file) throws IOException, InvalidImageException {
+        long startImageProcessing = System.nanoTime();
 
+        InGameNameParser names = new InGameNameParser(file);
+        names.cropImageIfFullScreen();
+        names.adjustColorsAndIdentifyWidth();
+        names.cropHeaderAndFooter();
+        names.fixImage();
+
+        File outputfile = new File("C:\\Users\\ewang\\Desktop\\Output\\imageINGAME.png");
+        ImageIO.write(names.getImage(), "png", outputfile);
     }
 }
