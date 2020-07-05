@@ -160,8 +160,6 @@ public class DirectoryWatcher {
         System.out.println("[INFO] Image Processing Time: " + imageProcessingTime + " SEC.");
         System.out.println("[INFO] API Requests Time: " + apiRequestsTime + " SEC.");
 
-        File outputfile = new File("C:\\Users\\ewang\\Desktop\\imageGAME.png");
-        ImageIO.write(names.getImage(), "png", outputfile);
         // TODO implement point system
         System.out.println("=====================================");
     }
@@ -176,9 +174,12 @@ public class DirectoryWatcher {
         names.fixImage();
         names.identifyWidth();
 
-        Map<AbstractNameParser.TeamColors, List<String>> teammates = names.getPlayerNames();
+        Map<AbstractNameParser.TeamColors, List<String>> teammates = names.getPlayerNames(dirWatchExemptPlayers);
         long endImageProcessing = System.nanoTime();
 
+        double imageProcessingTime = (endImageProcessing - startImageProcessing) * 1e-9;
+        System.out.println("[INFO] Image Processing Time: " + imageProcessingTime + " SEC.");
+        System.out.println("=====================================");
 
     }
 }

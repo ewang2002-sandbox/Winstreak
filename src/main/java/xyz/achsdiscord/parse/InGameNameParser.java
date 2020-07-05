@@ -5,10 +5,8 @@ import java.awt.image.RGBImageFilter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class InGameNameParser extends AbstractNameParser {
@@ -219,6 +217,8 @@ public class InGameNameParser extends AbstractNameParser {
         int y = 0;
 
         Map<TeamColors, List<String>> teammates = new HashMap<>();
+        List<TeamColors> colorsToIgnore = new ArrayList<>();
+
         TeamColors currentColor = null;
         while (y <= super._img.getHeight()) {
             StringBuilder name = new StringBuilder();
@@ -261,7 +261,11 @@ public class InGameNameParser extends AbstractNameParser {
                 }
             }
 
-            if (!peopleToExclude.contains(name.toString()) && !name.toString().trim().equals("")) {
+            if (peopleToExclude.contains(name.toString())) {
+                colorsToIgnore.add(currentColor);
+            }
+
+            if (!colorsToIgnore.contains(currentColor) && !name.toString().trim().equals("")) {
                 if (currentColor == null) {
                     System.out.println("No Color: " + name.toString());
                     continue;
