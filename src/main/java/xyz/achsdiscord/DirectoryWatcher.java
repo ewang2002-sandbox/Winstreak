@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class DirectoryWatcher {
@@ -116,9 +117,10 @@ public class DirectoryWatcher {
 
         LobbyNameParser names = new LobbyNameParser(file);
         names.cropImageIfFullScreen();
-        names.adjustColorsAndIdentifyWidth();
+        names.adjustColors();
         names.cropHeaderAndFooter();
         names.fixImage();
+        names.identifyWidth();
 
         List<String> allNames = names.getPlayerNames(dirWatchExemptPlayers);
         long endImageProcessing = System.nanoTime();
@@ -137,19 +139,20 @@ public class DirectoryWatcher {
         int tryhardBedsBroken = 0;
         int tryhardFinalKills = 0;
         if (results.size() != 0) {
-            StringBuilder b = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
             for (ResponseCheckerResults result : results) {
                 tryhardBedsBroken += result.bedsDestroyed;
                 tryhardFinalKills += result.finalKills;
-                b.append("[PLAYER] Name: ").append(result.name).append(" (K = ").append(result.finalKills).append("; B = ").append(result.bedsDestroyed).append(")")
+                builder.append("[PLAYER] Name: ").append(result.name).append(" (K = ").append(result.finalKills).append("; B = ").append(result.bedsDestroyed).append(")")
                         .append(System.lineSeparator());
             }
-            System.out.println(b.toString());
+            System.out.println(builder.toString());
         }
 
         System.out.println("[INFO] Errored: " + checker.getErroredUsers().size());
         System.out.println("[INFO] Tryhards: " + results.size());
         System.out.println("[INFO] Total: " + allNames.size());
+        System.out.println("[INFO] All Names: " + allNames.toString());
         System.out.println("[INFO] Tryhard Final Kills: " + tryhardFinalKills);
         System.out.println("[INFO] Tryhard Broken Beds: " + tryhardBedsBroken);
         System.out.println("[INFO] Total Final Kills: " + checker.getTotalFinalKills());
@@ -157,11 +160,9 @@ public class DirectoryWatcher {
         System.out.println("[INFO] Image Processing Time: " + imageProcessingTime + " SEC.");
         System.out.println("[INFO] API Requests Time: " + apiRequestsTime + " SEC.");
 
-        // TODO implement point system
-
-        File outputfile = new File("C:\\Users\\ewang\\Desktop\\Output\\imageLOBBY.png");
+        File outputfile = new File("C:\\Users\\ewang\\Desktop\\imageGAME.png");
         ImageIO.write(names.getImage(), "png", outputfile);
-
+        // TODO implement point system
         System.out.println("=====================================");
     }
 
@@ -170,11 +171,14 @@ public class DirectoryWatcher {
 
         InGameNameParser names = new InGameNameParser(file);
         names.cropImageIfFullScreen();
-        names.adjustColorsAndIdentifyWidth();
+        names.adjustColors();
         names.cropHeaderAndFooter();
         names.fixImage();
+        names.identifyWidth();
 
-        File outputfile = new File("C:\\Users\\ewang\\Desktop\\Output\\imageINGAME.png");
-        ImageIO.write(names.getImage(), "png", outputfile);
+        Map<AbstractNameParser.TeamColors, List<String>> teammates = names.getPlayerNames();
+        long endImageProcessing = System.nanoTime();
+
+
     }
 }

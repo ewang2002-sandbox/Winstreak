@@ -152,7 +152,7 @@ public class LobbyNameParser extends AbstractNameParser {
         if (startingXVal == super._img.getWidth() || startingYVal == super._img.getHeight()) {
             throw new InvalidImageException("Couldn't crop the image. Make " +
                     "sure the image was processed beforehand; perhaps try to " +
-                    "run the adjustColorsAndIdentifyWidth() method first!");
+                    "run the adjustColors() method first!");
         }
 
         // make new copy of the image

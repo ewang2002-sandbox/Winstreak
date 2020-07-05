@@ -146,7 +146,7 @@ public class InGameNameParser extends AbstractNameParser {
         if (startingXVal == super._img.getWidth() || startingYVal == super._img.getHeight()) {
             throw new InvalidImageException("Couldn't crop the image. Make " +
                     "sure the image was processed beforehand; perhaps try to " +
-                    "run the adjustColorsAndIdentifyWidth() method first!");
+                    "run the adjustColors() method first!");
         }
 
         // make new copy of the image
@@ -216,9 +216,10 @@ public class InGameNameParser extends AbstractNameParser {
             return new HashMap<>();
         }
         // will contain list of names
-        List<String> names = new ArrayList<>();
         int y = 0;
 
+        Map<TeamColors, List<String>> teammates = new HashMap<>();
+        TeamColors currentColor = null;
         while (y <= super._img.getHeight()) {
             StringBuilder name = new StringBuilder();
             int x = 0;
@@ -230,7 +231,9 @@ public class InGameNameParser extends AbstractNameParser {
                     try {
                         StringBuilder columnBytes = new StringBuilder();
                         for (int dy = 0; dy < 8 * super._width; dy += super._width) {
-                            if (super._img.getRGB(x, y + dy) == Color.black.getRGB()) {
+                            Color color = new Color(super._img.getRGB(x, y + dy));
+                            if (this.isValidColor(color)) {
+                                currentColor = this.getTeamColor(color);
                                 columnBytes.append("1");
                             } else {
                                 columnBytes.append("0");
@@ -257,8 +260,18 @@ public class InGameNameParser extends AbstractNameParser {
                     break;
                 }
             }
-            if (!peopleToExclude.contains(name.toString())) {
-                names.add(name.toString());
+
+            if (!peopleToExclude.contains(name.toString()) && !name.toString().trim().equals("")) {
+                if (currentColor == null) {
+                    System.out.println("No Color: " + name.toString());
+                    continue;
+                }
+                else {
+                    if (!teammates.containsKey(currentColor)) {
+                        teammates.put(currentColor, new ArrayList<>());
+                    }
+                    teammates.get(currentColor).add(name.toString());
+                }
             }
             // 8 + 1 means the names + the space
             // that separates the first name from
@@ -266,27 +279,26 @@ public class InGameNameParser extends AbstractNameParser {
             y += 9 * super._width;
         }
 
-        names = names.stream()
-                .filter(name -> name.length() != 0)
-                .collect(Collectors.toList());
-        return null;
+        return teammates;
     }
 
+    /**
+     * Gets the Team Color enum member from a given color.
+     *
+     * @param color The given color.
+     * @return The TeamColor enum member corresponding to that color.
+     */
     private TeamColors getTeamColor(Color color) {
         int rgb = color.getRGB();
         if (rgb == AbstractNameParser.BLUE_TEAM_COLOR.getRGB()) {
             return TeamColors.BLUE;
-        }
-        else if (rgb == AbstractNameParser.RED_TEAM_COLOR.getRGB()) {
+        } else if (rgb == AbstractNameParser.RED_TEAM_COLOR.getRGB()) {
             return TeamColors.RED;
-        }
-        else if (rgb == AbstractNameParser.YELLOW_TEAM_COLOR.getRGB()) {
+        } else if (rgb == AbstractNameParser.YELLOW_TEAM_COLOR.getRGB()) {
             return TeamColors.YELLOW;
-        }
-        else if (rgb == AbstractNameParser.GREEN_TEAM_COLOR.getRGB()) {
+        } else if (rgb == AbstractNameParser.GREEN_TEAM_COLOR.getRGB()) {
             return TeamColors.GREEN;
-        }
-        else {
+        } else {
             return TeamColors.UNKNOWN;
         }
     }

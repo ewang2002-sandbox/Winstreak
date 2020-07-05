@@ -45,7 +45,7 @@ public abstract class AbstractNameParser {
     /**
      * All possible team colors for 3v3v3v3 and 4v4v4v4.
      */
-    protected enum TeamColors {
+    public enum TeamColors {
         BLUE,
         GREEN,
         RED,
@@ -200,54 +200,24 @@ public abstract class AbstractNameParser {
      * to adjust the coloring of the image so anything other than the
      * valid colors, which is defined in {@link xyz.achsdiscord.parse.AbstractNameParser#isValidColor(Color)},
      * is made white.
-     * <p>
-     * This method is expected to be deprecated soon.
-     * </p>
      */
-    public void adjustColorsAndIdentifyWidth() {
+    public void adjustColors() {
         if (this.calledMakeBlkWtFunc) {
             return;
         }
 
         this.calledMakeBlkWtFunc = true;
 
-        boolean foundLineWithValidColor = false;
-        boolean hasTestedWidth = false;
-        List<Integer> possibleWidths = new ArrayList<>();
-
+        // replace any invalid colors
+        // with white
         for (int y = 0; y < this._img.getHeight(); y++) {
-            int width = 0;
             for (int x = 0; x < this._img.getWidth(); x++) {
                 Color color = new Color(this._img.getRGB(x, y));
 
-                if (this.isValidColor(color)) {
-                    foundLineWithValidColor = true;
-                } else {
+                if (!this.isValidColor(color)) {
                     this._img.setRGB(x, y, Color.white.getRGB());
                 }
-
-                if (!hasTestedWidth) {
-                    if (this.isValidColor(color)) {
-                        foundLineWithValidColor = true;
-                        ++width;
-                    } else {
-                        if (width != 0) {
-                            possibleWidths.add(width);
-                            width = 0;
-                        }
-                    }
-                }
-
             }
-
-            if (foundLineWithValidColor) {
-                hasTestedWidth = true;
-            }
-        }
-
-        // this should never be size 0
-        if (possibleWidths.size() != 0) {
-            this._width = mostCommon(possibleWidths);
         }
 
         // now, let's make sure there aren't any random "particles" sitting around.
@@ -277,10 +247,10 @@ public abstract class AbstractNameParser {
      * Only run this method if the screenshot you provided was a screenshot of the entire Minecraft application OR you have both header and footer.
      * </p>
      * <p>
-     * You must have used the {@code adjustColorsAndIdentifyWidth()} method first.
+     * You must have used the {@code adjustColors()} method first.
      * </p>
      *
-     * @throws InvalidImageException If the image wasn't processed through the {@code adjustColorsAndIdentifyWidth()} method.
+     * @throws InvalidImageException If the image wasn't processed through the {@code adjustColors()} method.
      */
     public void cropHeaderAndFooter() throws InvalidImageException {
         if (this.calledCropHeaderFooter) {
@@ -334,7 +304,7 @@ public abstract class AbstractNameParser {
         if (topY == -1) {
             throw new InvalidImageException("Couldn't crop the image. Make " +
                     "sure the image was processed beforehand; perhaps try to " +
-                    "run the adjustColorsAndIdentifyWidth() method first!");
+                    "run the adjustColors() method first!");
         }
 
         this.cropImage(0, topY, this._img.getWidth(), this._img.getHeight() - topY);
@@ -348,9 +318,58 @@ public abstract class AbstractNameParser {
      * This method must be called so the image is properly processed and ready to be parsed.
      * </p>
      *
-     * @throws InvalidImageException If the image wasn't processed through the {@code #adjustColorsAndIdentifyWidth()} method.
+     * @throws InvalidImageException If the image wasn't processed through the {@code #adjustColors()} method.
      */
     public abstract void fixImage() throws InvalidImageException;
+
+    /**
+     * This method attempts to find the width of each pixel. This is needed
+     * in order to ensure accuracy of parsing.
+     * <p>
+     * You must have called {@code fixImage()} first.
+     * </p>
+     */
+    public void identifyWidth() {
+        Map<Integer, Integer> possibleWidths = new HashMap<>();
+        int numWidthsProcessed = 0;
+
+        for (int y = 0; y < this._img.getHeight(); y++) {
+            int width = 0;
+            for (int x = 0; x < this._img.getWidth(); x++) {
+                Color color = new Color(this._img.getRGB(x, y));
+                if (this.isValidColor(color)) {
+                    ++width;
+                } else {
+                    if (width != 0) {
+                        Integer val = possibleWidths.get(width);
+                        possibleWidths.put(width, val == null ? 1 : val + 1);
+
+                        numWidthsProcessed++;
+                        width = 0;
+                    }
+                }
+            }
+
+            if (numWidthsProcessed > 200) {
+                break;
+            }
+        }
+
+        Map.Entry<Integer, Integer> max = null;
+
+        for (Map.Entry<Integer, Integer> e : possibleWidths.entrySet()) {
+            if (max == null || e.getValue() > max.getValue())
+                max = e;
+        }
+
+        if (max == null) {
+            // default width
+            this._width = 2;
+        }
+        else {
+            this._width = max.getKey();
+        }
+    }
 
     /**
      * The {@code getPlayerName()} method will attempt to parse the screenshot
