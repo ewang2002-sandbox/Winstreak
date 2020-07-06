@@ -1,18 +1,25 @@
 # Winstreak
-Winstreak is a program designed to ensure you, the player, can maintain a win-streak in Hypixel's Bedwars mini-game.
+Winstreak is a program designed to ensure you, the player, can maintain a win-streak in Hypixel's Bedwars mini-game. 
+
+It allows you to determine whether you should leave the Bedwars lobby or not, and tells you which teams are the most competitive (and should be taken out first).
 
 ## Purpose
 Often, players are put in a Bedwars lobby with a bunch of tryhards. A tryhard is essentially a player that puts all their effort into the game; in other words, the tryhard tries to end the game as fast as possible by destroying all the enemy beds and killing all players within a certain time.
 
-Yes, Bedwars is designed to be a competitive game. However, there is a fine line between your generic player and the tryhard. Whereas the tryhard tries to win the game as soon as possible, the generic player plays the game to relax. 
+Yes, Bedwars is designed to be a competitive game. However, there is a fine line between your generic player and the tryhard. Whereas the tryhard tries to win the game as soon as possible, the generic player plays the game to relax and, most importantly, have fun. 
 
 My friends and I have often dealt with tryhards. Speaking from experience, it is not fun being in a game with a tryhard -- or worse, a team of tryhards. Not only does a team of tryhards end a game in less than 5 minutes (an average game lasts around 15-20 minutes), but some tryhards are extremely toxic, which doesn't help at all.
 
 ## How Does This Program Work?
-Given a screenshot, the program will parse all the names found in the player list (the list that shows up when you press `[TAB]`). After the names are parsed, the following happens.
-1. The program sends a request to a public Hypixel API, essentially asking the API for each player's (in the list) stats. 
-2. The program will then use the data it receives from the API to determine if a lobby has any tryhards.
-3. If there is, the program will warn you. Use this opportunity to `/hub` and get into a new lobby.
+Given a screenshot, the program will do the following.
+1. Determine what screenshot it will be working with: either an in-game screenshot or a lobby screenshot.
+2. Parses the screenshot for names.
+3. Grabs relevant data from a public API.
+4. Displays them in a way that is easy to understand. 
+
+## Technologies Used
+- Java: So I can get some additional practice with the Java programming language. 
+- Gradle: To learn more about what Gradle has to offer. 
 
 ## What I Learned
 - I learned more about the binary system (0101010).
