@@ -1,13 +1,13 @@
 package xyz.achsdiscord.parse;
 
 import java.awt.*;
-import java.awt.image.RGBImageFilter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 public class InGameNameParser extends AbstractNameParser {
     /**

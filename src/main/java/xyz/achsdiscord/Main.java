@@ -12,29 +12,20 @@ public class Main {
         int amtTryHards;
 
         try (Scanner scanner = new Scanner(System.in)) {
-            while (true) {
+            do {
                 System.out.println("How many broken beds does a tryhard has? ");
                 brokenBeds = scanner.nextInt();
-                if (brokenBeds > 0) {
-                    break;
-                }
-            }
+            } while (brokenBeds <= 0);
 
-            while (true) {
+            do {
                 System.out.println("How many final kills does a tryhard has? ");
                 finalKills = scanner.nextInt();
-                if (finalKills > 0) {
-                    break;
-                }
-            }
+            } while (finalKills <= 0);
 
-            while (true) {
+            do {
                 System.out.println("How many total tryhards in lobby before we recommend that you leave?");
                 amtTryHards = scanner.nextInt();
-                if (amtTryHards > 0) {
-                    break;
-                }
-            }
+            } while (amtTryHards <= 0);
         }
 
         Path path;
