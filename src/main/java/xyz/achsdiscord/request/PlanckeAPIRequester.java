@@ -8,7 +8,7 @@ import java.net.URL;
 import java.util.Random;
 import java.util.concurrent.Callable;
 
-public class PlanckeAPIRequester implements Callable<String> {
+class PlanckeAPIRequester implements Callable<String> {
     private final String _name;
 
     /**
@@ -32,6 +32,10 @@ public class PlanckeAPIRequester implements Callable<String> {
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.addRequestProperty("X-Forwarded-For", generateRandomIpAddress());
+        // player not found
+        if (connection.getResponseCode() == 404) {
+            return "";
+        }
         BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
         StringBuilder builder = new StringBuilder();

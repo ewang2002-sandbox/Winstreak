@@ -1,4 +1,6 @@
-package xyz.achsdiscord.request;
+package xyz.achsdiscord.request.checker;
+
+import xyz.achsdiscord.request.BedwarsData;
 
 import java.util.Arrays;
 

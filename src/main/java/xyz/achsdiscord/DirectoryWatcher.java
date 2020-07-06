@@ -3,9 +3,11 @@ package xyz.achsdiscord;
 import xyz.achsdiscord.parse.AbstractNameParser;
 import xyz.achsdiscord.parse.InGameNameParser;
 import xyz.achsdiscord.parse.InvalidImageException;
+import xyz.achsdiscord.request.MultipleRequestHandler;
 import xyz.achsdiscord.request.checker.ResponseParser;
 import xyz.achsdiscord.request.checker.ResponseCheckerResults;
 import xyz.achsdiscord.parse.LobbyNameParser;
+import xyz.achsdiscord.request.checker.TeamInfo;
 
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -14,7 +16,9 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class DirectoryWatcher {
     public static final String ANSI_RESET = "\u001B[0m";
@@ -112,7 +116,7 @@ public class DirectoryWatcher {
         // end loop
     }
 
-    public static void lobbyCheck(final File file) throws IOException, InvalidImageException {
+    public static void lobbyCheck(final File file) throws IOException, InvalidImageException, ExecutionException, InterruptedException {
         long startImageProcessing = System.nanoTime();
 
         LobbyNameParser names = new LobbyNameParser(file);
@@ -126,11 +130,13 @@ public class DirectoryWatcher {
         long endImageProcessing = System.nanoTime();
 
         long startTimeForReq = System.nanoTime();
-        ResponseParser checker = new ResponseParser(allNames)
+        Map<String, String> nameData = new MultipleRequestHandler(allNames)
+                .sendRequests();
+        ResponseParser checker = new ResponseParser(nameData)
                 .setMinimumBrokenBedsNeeded(dirWatchBrokenBeds)
                 .setMinimumFinalKillsNeeded(dirWatchFinalKills);
 
-        List<ResponseCheckerResults> results = checker.check();
+        List<ResponseCheckerResults> results = checker.getNamesToWorryAbout();
         long endTimeForReq = System.nanoTime();
 
         double imageProcessingTime = (endImageProcessing - startImageProcessing) * 1e-9;
@@ -149,7 +155,7 @@ public class DirectoryWatcher {
             System.out.println(builder.toString());
         }
 
-        System.out.println("[INFO] Errored: " + checker.getErroredUsers().size());
+        System.out.println("[INFO] Errored: " + checker.getErroredUsers().size() + " " + checker.getErroredUsers().toString());
         System.out.println("[INFO] Tryhards: " + results.size());
         System.out.println("[INFO] Total: " + allNames.size());
         System.out.println("[INFO] All Names: " + allNames.toString());
@@ -164,7 +170,7 @@ public class DirectoryWatcher {
         System.out.println("=====================================");
     }
 
-    public static void inGameCheck(final File file) throws IOException, InvalidImageException {
+    public static void inGameCheck(final File file) throws IOException, InvalidImageException, ExecutionException, InterruptedException {
         long startImageProcessing = System.nanoTime();
 
         InGameNameParser names = new InGameNameParser(file);
@@ -177,8 +183,54 @@ public class DirectoryWatcher {
         Map<AbstractNameParser.TeamColors, List<String>> teammates = names.getPlayerNames(dirWatchExemptPlayers);
         long endImageProcessing = System.nanoTime();
 
+        long startRequestTime = System.nanoTime();
+
+        List<TeamInfo> teamInfo = new ArrayList<>();
+        for (Map.Entry<AbstractNameParser.TeamColors, List<String>> entry : teammates.entrySet()) {
+            Map<String, String> teamData = new MultipleRequestHandler(entry.getValue())
+                    .sendRequests();
+            ResponseParser parser = new ResponseParser(teamData);
+            teamInfo.add(
+                    new TeamInfo(
+                            entry.getKey(),
+                            parser.getPlayerDataFromMap(),
+                            parser.getErroredUsers(),
+                            parser.getTotalFinalKills(),
+                            parser.getTotalBrokenBeds()
+                    )
+            );
+        }
+
+        teamInfo.sort((o1, o2) -> o2.totalBrokenBeds - o1.totalBrokenBeds);
+        long stopRequestTime = System.nanoTime();
+
+        long processRequestDataStart = System.nanoTime();
+        int rank = 1;
+        for (TeamInfo info : teamInfo) {
+            StringBuilder builder = new StringBuilder();
+            String allAvailablePlayers = info.availablePlayers
+                    .stream()
+                    .map(x -> x.name)
+                    .collect(Collectors.toList()).toString();
+            String allErroredPlayers = info.erroredPlayers.toString();
+            builder.append("[").append(rank).append("] ").append(info.color).append(" (").append(info.availablePlayers.size() + info.erroredPlayers.size()).append(")")
+                    .append(System.lineSeparator()).append("Total Final Kills: ").append(info.totalFinalKills)
+                    .append(System.lineSeparator()).append("Total Broken Beds: ").append(info.totalBrokenBeds)
+                    .append(System.lineSeparator()).append("Players Ranked: ").append(allAvailablePlayers)
+                    .append(System.lineSeparator()).append("Errored Players: ").append(info.erroredPlayers.size()).append(" ").append(allErroredPlayers);
+            System.out.println(builder.toString());
+            System.out.println(System.lineSeparator());
+            rank++;
+        }
+        long processRequestDataStop = System.nanoTime();
+
         double imageProcessingTime = (endImageProcessing - startImageProcessing) * 1e-9;
+        double requestProcessingTime = (stopRequestTime - startRequestTime) * 1e-9;
+        double processReqTime = (processRequestDataStop - processRequestDataStart) * 1e-9;
+
         System.out.println("[INFO] Image Processing Time: " + imageProcessingTime + " SEC.");
+        System.out.println("[INFO] API Requests Time: " + requestProcessingTime + " SEC.");
+        System.out.println("[INFO] Processing Requests Time: " + processReqTime + " SEC.");
         System.out.println("=====================================");
 
     }

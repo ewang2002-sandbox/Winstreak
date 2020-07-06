@@ -1,15 +1,11 @@
 package xyz.achsdiscord.request.checker;
 
 import xyz.achsdiscord.request.BedwarsData;
-import xyz.achsdiscord.request.PlanckeAPIRequester;
-import xyz.achsdiscord.request.RequestParser;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.FutureTask;
+import java.util.*;
 
 public class ResponseParser {
-    private final List<String> _names;
+    private final Map<String, String> _names;
     private int _minimumBrokenBeds;
     private int _minimumFinalKills;
     private int _totalBedsDestroyed;
@@ -18,22 +14,22 @@ public class ResponseParser {
     private List<String> _erroredUsers;
 
     /**
-     * Creates a new NameChecker class with a list of given names and the default parameters of 250 broken beds and 500 final kills.
+     * Creates a new ResponseParser class with a list of given names and the default parameters of 250 broken beds and 500 final kills.
      *
-     * @param names The list of names.
+     * @param names A map of names with their raw HTML data.
      */
-    public ResponseParser(List<String> names) {
+    public ResponseParser(Map<String, String> names) {
         this(names, 250, 500);
     }
 
     /**
-     * Creates a new NameChecker class with a list of given names and the specified number of broken beds and final kills.
+     * Creates a new ResponseParser class with a list of given names and the specified number of broken beds and final kills.
      *
-     * @param names         The list of names to check
+     * @param names         A map of names with their raw HTML data.
      * @param minBeds       The minimum number of beds a person must have broken in order to be reported as a tryhard.
      * @param minFinalKills The minimum number of final kills a person must have in order to be reported as a tryhard.
      */
-    public ResponseParser(List<String> names, int minBeds, int minFinalKills) {
+    public ResponseParser(Map<String, String> names, int minBeds, int minFinalKills) {
         this._minimumFinalKills = minFinalKills;
         this._minimumBrokenBeds = minBeds;
         this._names = names;
@@ -65,44 +61,85 @@ public class ResponseParser {
     /**
      * Checks all names and sees which players are considered tryhards.
      *
-     * @return A list of names that meet the minimum final kills and broken beds needed to be considered a tryhard.
+     * @return A list of names that meet the minimum final kills and broken beds needed
+     * to be considered a tryhard.
      */
-    public List<ResponseCheckerResults> check() {
-        FutureTask[] nameResponses = new FutureTask[this._names.size()];
-        for (int i = 0; i < this._names.size(); i++) {
-            PlanckeAPIRequester req = new PlanckeAPIRequester(this._names.get(i));
-            nameResponses[i] = new FutureTask<>(req);
-
-            Thread t = new Thread(nameResponses[i]);
-            t.start();
-        }
-
+    public List<ResponseCheckerResults> getNamesToWorryAbout() {
         List<ResponseCheckerResults> namesToWorryAbout = new ArrayList<>();
 
         int totalBrokenBeds = 0;
         int totalFinalKills = 0;
 
-        for (int i = 0; i < nameResponses.length; i++) {
+        for (Map.Entry<String, String> entry : this._names.entrySet()) {
             try {
-                BedwarsData data = new RequestParser(this._names.get(i), (String) nameResponses[i].get())
+                BedwarsData data = new RequestParser(entry.getKey(), entry.getValue())
                         .parse()
                         .getTotalDataInfo();
                 totalBrokenBeds += data.bedsBroken;
                 totalFinalKills += data.finalKills;
                 // we have a tryhard!
                 if (data.bedsBroken >= this._minimumBrokenBeds || data.finalKills >= this._minimumFinalKills) {
-                    ResponseCheckerResults results = new ResponseCheckerResults(this._names.get(i), data.bedsBroken, data.finalKills);
+                    ResponseCheckerResults results = new ResponseCheckerResults(entry.getKey(), data.bedsBroken, data.finalKills);
                     namesToWorryAbout.add(results);
                 }
             } catch (Exception e) {
                 // errored user
-                this._erroredUsers.add(this._names.get(i));
+                this._erroredUsers.add(entry.getKey());
             }
         }
 
         this._totalFinalKills = totalFinalKills;
         this._totalBedsDestroyed = totalBrokenBeds;
+
+        this.sortByBrokenBeds(namesToWorryAbout);
+
         return namesToWorryAbout;
+    }
+
+    /**
+     * Returns a list of player data. This will ignore any
+     * defined broken beds or final kills.
+     *
+     * @return A list of player data.
+     */
+    public List<ResponseCheckerResults> getPlayerDataFromMap() {
+        List<ResponseCheckerResults> data = new ArrayList<>();
+        int totalBrokenBeds = 0;
+        int totalFinalKills = 0;
+
+        for (Map.Entry<String, String> entry : this._names.entrySet()) {
+            try {
+                BedwarsData bwData = new RequestParser(entry.getKey(), entry.getValue())
+                        .parse()
+                        .getTotalDataInfo();
+                totalBrokenBeds += bwData.bedsBroken;
+                totalFinalKills += bwData.finalKills;
+                data.add(
+                        new ResponseCheckerResults(
+                                entry.getKey(),
+                                bwData.bedsBroken,
+                                bwData.finalKills
+                        )
+                );
+            } catch (Exception e) {
+                // errored user
+                this._erroredUsers.add(entry.getKey());
+            }
+        }
+
+        this._totalFinalKills = totalFinalKills;
+        this._totalBedsDestroyed = totalBrokenBeds;
+
+        this.sortByBrokenBeds(data);
+        return data;
+    }
+
+    /**
+     * Sorts the final array by broken beds. The greatest number of broken
+     * beds will be the first entry.
+     */
+    private void sortByBrokenBeds(List<ResponseCheckerResults> resp) {
+        resp.sort((o1, o2) -> o2.bedsDestroyed - o1.bedsDestroyed);
     }
 
     /**
