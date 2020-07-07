@@ -171,10 +171,10 @@ public class DirectoryWatcher {
             points += 20;
         }
         else {
-            points += namesToWorryAbout.size() * 1.5;
+            points += namesToWorryAbout.size() * 2;
         }
 
-        points += checker.getErroredUsers().size() * 0.5;
+        points += checker.getErroredUsers().size();
 
         if (namesToWorryAbout.size() != 0) {
             int bedsThousands = tryhardBedsBroken / 1050;
@@ -184,7 +184,7 @@ public class DirectoryWatcher {
             points += finalKillsThousands;
 
             double percentBedsBrokenByTryhards = (double) tryhardBedsBroken / checker.getTotalBrokenBeds();
-            int bedsBrokenMultiplier = tryhardBedsBroken >= 1000
+            int bedsBrokenMultiplier = tryhardBedsBroken >= dirWatchBrokenBeds * namesToWorryAbout.size()
                     ? 1
                     : 0;
             if (percentBedsBrokenByTryhards > 0.4) {
@@ -192,7 +192,7 @@ public class DirectoryWatcher {
             }
 
             double percentFinalKillsByTryhards = (double) tryhardFinalKills / checker.getTotalFinalKills();
-            double finalKillsMultiplier = tryhardFinalKills > 1250
+            double finalKillsMultiplier = tryhardFinalKills >= dirWatchTryhards * namesToWorryAbout.size()
                     ? 1
                     : 0;
             if (percentFinalKillsByTryhards > 0.5) {
@@ -219,7 +219,7 @@ public class DirectoryWatcher {
             System.out.println(ANSI_YELLOW + "[INFO] Suggested Action: CONSIDER LEAVING" + ANSI_RESET);
         }
         else if (points >= 7) {
-            System.out.println(ANSI_BLUE + "[INFO] Suggested Action: HARD GAME BUT CONSIDER STAYING" + ANSI_RESET);
+            System.out.println(ANSI_BLUE + "[INFO] Suggested Action: HARD GAME, CONSIDER STAYING" + ANSI_RESET);
         }
         else if (points >= 4) {
             System.out.println(ANSI_CYAN + "[INFO] Suggested Action: NORMAL GAME, CONSIDER STAYING" + ANSI_RESET);
