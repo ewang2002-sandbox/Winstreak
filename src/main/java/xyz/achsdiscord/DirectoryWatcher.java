@@ -3,10 +3,10 @@ package xyz.achsdiscord;
 import xyz.achsdiscord.parse.AbstractNameParser;
 import xyz.achsdiscord.parse.InGameNameParser;
 import xyz.achsdiscord.parse.InvalidImageException;
-import xyz.achsdiscord.request.MultipleRequestHandler;
-import xyz.achsdiscord.request.checker.ResponseParser;
-import xyz.achsdiscord.request.checker.ResponseCheckerResults;
 import xyz.achsdiscord.parse.LobbyNameParser;
+import xyz.achsdiscord.request.MultipleRequestHandler;
+import xyz.achsdiscord.request.checker.ResponseCheckerResults;
+import xyz.achsdiscord.request.checker.ResponseParser;
 import xyz.achsdiscord.request.checker.TeamInfo;
 
 import javax.imageio.ImageIO;
@@ -136,7 +136,7 @@ public class DirectoryWatcher {
                 .setMinimumBrokenBedsNeeded(dirWatchBrokenBeds)
                 .setMinimumFinalKillsNeeded(dirWatchFinalKills);
 
-        List<ResponseCheckerResults> results = checker.getNamesToWorryAbout();
+        List<ResponseCheckerResults> namesToWorryAbout = checker.getNamesToWorryAbout();
         long endTimeForReq = System.nanoTime();
 
         double imageProcessingTime = (endImageProcessing - startImageProcessing) * 1e-9;
@@ -144,9 +144,9 @@ public class DirectoryWatcher {
 
         int tryhardBedsBroken = 0;
         int tryhardFinalKills = 0;
-        if (results.size() != 0) {
+        if (namesToWorryAbout.size() != 0) {
             StringBuilder builder = new StringBuilder();
-            for (ResponseCheckerResults result : results) {
+            for (ResponseCheckerResults result : namesToWorryAbout) {
                 tryhardBedsBroken += result.bedsDestroyed;
                 tryhardFinalKills += result.finalKills;
                 builder.append("[PLAYER] Name: ").append(result.name).append(" (K = ").append(result.finalKills).append("; B = ").append(result.bedsDestroyed).append(")")
@@ -156,7 +156,7 @@ public class DirectoryWatcher {
         }
 
         System.out.println("[INFO] Errored: " + checker.getErroredUsers().size() + " " + checker.getErroredUsers().toString());
-        System.out.println("[INFO] Tryhards: " + results.size());
+        System.out.println("[INFO] Tryhards: " + namesToWorryAbout.size());
         System.out.println("[INFO] Total: " + allNames.size());
         System.out.println("[INFO] All Names: " + allNames.toString());
         System.out.println("[INFO] Tryhard Final Kills: " + tryhardFinalKills);
@@ -166,7 +166,67 @@ public class DirectoryWatcher {
         System.out.println("[INFO] Image Processing Time: " + imageProcessingTime + " SEC.");
         System.out.println("[INFO] API Requests Time: " + apiRequestsTime + " SEC.");
 
-        // TODO implement point system
+        int points = 0;
+        if (namesToWorryAbout.size() >= dirWatchTryhards) {
+            points += 20;
+        }
+        else {
+            points += namesToWorryAbout.size() * 1.5;
+        }
+
+        points += checker.getErroredUsers().size() * 0.5;
+
+        if (namesToWorryAbout.size() != 0) {
+            int bedsThousands = tryhardBedsBroken / 1050;
+            points += bedsThousands;
+
+            int finalKillsThousands = tryhardFinalKills / 1350;
+            points += finalKillsThousands;
+
+            double percentBedsBrokenByTryhards = (double) tryhardBedsBroken / checker.getTotalBrokenBeds();
+            int bedsBrokenMultiplier = tryhardBedsBroken >= 1000
+                    ? 1
+                    : 0;
+            if (percentBedsBrokenByTryhards > 0.4) {
+                points += (percentBedsBrokenByTryhards * 8) * bedsBrokenMultiplier;
+            }
+
+            double percentFinalKillsByTryhards = (double) tryhardFinalKills / checker.getTotalFinalKills();
+            double finalKillsMultiplier = tryhardFinalKills > 1250
+                    ? 1
+                    : 0;
+            if (percentFinalKillsByTryhards > 0.5) {
+                points += (percentFinalKillsByTryhards * 6) * finalKillsMultiplier;
+            }
+        }
+        else {
+            int bedsThousands = checker.getTotalBrokenBeds() / 1050;
+            points += bedsThousands;
+
+            int finalKillsThousands = checker.getTotalFinalKills() / 1500;
+            points += finalKillsThousands;
+        }
+
+        System.out.println("[INFO] Points: " + points);
+        // 16 to inf
+        if (points >= 17) {
+            System.out.println(ANSI_RED + "[INFO] Suggested Action: LEAVE" + ANSI_RESET);
+        }
+        else if (points >= 14) {
+            System.out.println(ANSI_RED + "[INFO] Suggested Action: SERIOUSLY CONSIDER LEAVING" + ANSI_RESET);
+        }
+        else if (points >= 10) {
+            System.out.println(ANSI_YELLOW + "[INFO] Suggested Action: CONSIDER LEAVING" + ANSI_RESET);
+        }
+        else if (points >= 7) {
+            System.out.println(ANSI_BLUE + "[INFO] Suggested Action: HARD GAME BUT CONSIDER STAYING" + ANSI_RESET);
+        }
+        else if (points >= 4) {
+            System.out.println(ANSI_CYAN + "[INFO] Suggested Action: NORMAL GAME, CONSIDER STAYING" + ANSI_RESET);
+        }
+        else {
+            System.out.println(ANSI_GREEN + "[INFO] Suggested Action: SAFE TO STAY!" + ANSI_RESET);
+        }
         System.out.println("=====================================");
     }
 

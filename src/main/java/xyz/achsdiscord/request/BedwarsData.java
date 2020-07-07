@@ -25,6 +25,5 @@ public final class BedwarsData {
         this.wins = wins;
         this.losses = losses;
         this.bedsBroken = bedsBroken;
-
     }
 }

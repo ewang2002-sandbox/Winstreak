@@ -36,12 +36,13 @@ class PlanckeAPIRequester implements Callable<String> {
         if (connection.getResponseCode() == 404) {
             return "";
         }
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
-        StringBuilder builder = new StringBuilder();
-        String str;
-        while ((str = in.readLine()) != null) {
-            builder.append(str).append(System.lineSeparator());
+        StringBuilder builder;
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+            builder = new StringBuilder();
+            String str;
+            while ((str = in.readLine()) != null) {
+                builder.append(str).append(System.lineSeparator());
+            }
         }
         return builder.toString();
     }
