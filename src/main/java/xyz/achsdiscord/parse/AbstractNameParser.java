@@ -357,8 +357,9 @@ public abstract class AbstractNameParser {
         Map.Entry<Integer, Integer> max = null;
 
         for (Map.Entry<Integer, Integer> e : possibleWidths.entrySet()) {
-            if (max == null || e.getValue() > max.getValue())
+            if (max == null || e.getValue() > max.getValue()) {
                 max = e;
+            }
         }
 
         if (max == null) {

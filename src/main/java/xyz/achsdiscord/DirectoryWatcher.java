@@ -169,8 +169,7 @@ public class DirectoryWatcher {
         int points = 0;
         if (namesToWorryAbout.size() >= dirWatchTryhards) {
             points += 20;
-        }
-        else {
+        } else {
             points += namesToWorryAbout.size() * 2;
         }
 
@@ -198,8 +197,7 @@ public class DirectoryWatcher {
             if (percentFinalKillsByTryhards > 0.5) {
                 points += (percentFinalKillsByTryhards * 6) * finalKillsMultiplier;
             }
-        }
-        else {
+        } else {
             int bedsThousands = checker.getTotalBrokenBeds() / 1050;
             points += bedsThousands;
 
@@ -211,20 +209,15 @@ public class DirectoryWatcher {
         // 16 to inf
         if (points >= 17) {
             System.out.println(ANSI_RED + "[INFO] Suggested Action: LEAVE" + ANSI_RESET);
-        }
-        else if (points >= 14) {
+        } else if (points >= 14) {
             System.out.println(ANSI_RED + "[INFO] Suggested Action: SERIOUSLY CONSIDER LEAVING" + ANSI_RESET);
-        }
-        else if (points >= 10) {
+        } else if (points >= 10) {
             System.out.println(ANSI_YELLOW + "[INFO] Suggested Action: CONSIDER LEAVING" + ANSI_RESET);
-        }
-        else if (points >= 7) {
+        } else if (points >= 7) {
             System.out.println(ANSI_BLUE + "[INFO] Suggested Action: HARD GAME, CONSIDER STAYING" + ANSI_RESET);
-        }
-        else if (points >= 4) {
+        } else if (points >= 4) {
             System.out.println(ANSI_CYAN + "[INFO] Suggested Action: NORMAL GAME, CONSIDER STAYING" + ANSI_RESET);
-        }
-        else {
+        } else {
             System.out.println(ANSI_GREEN + "[INFO] Suggested Action: SAFE TO STAY!" + ANSI_RESET);
         }
         System.out.println("=====================================");
@@ -240,7 +233,7 @@ public class DirectoryWatcher {
         names.fixImage();
         names.identifyWidth();
 
-        Map<AbstractNameParser.TeamColors, List<String>> teammates = names.getPlayerNames(dirWatchExemptPlayers);
+        Map<AbstractNameParser.TeamColors, List<String>> teammates = names.getPlayerNames();
         long endImageProcessing = System.nanoTime();
 
         long startRequestTime = System.nanoTime();
@@ -276,7 +269,7 @@ public class DirectoryWatcher {
             builder.append("[").append(rank).append("] ").append(info.color).append(" (").append(info.availablePlayers.size() + info.erroredPlayers.size()).append(")")
                     .append(System.lineSeparator()).append("Total Final Kills: ").append(info.totalFinalKills)
                     .append(System.lineSeparator()).append("Total Broken Beds: ").append(info.totalBrokenBeds)
-                    .append(System.lineSeparator()).append("Players Ranked: ").append(allAvailablePlayers)
+                    .append(System.lineSeparator()).append("Players: ").append(allAvailablePlayers)
                     .append(System.lineSeparator()).append("Errored Players: ").append(info.erroredPlayers.size()).append(" ").append(allErroredPlayers);
             System.out.println(builder.toString());
             System.out.println(System.lineSeparator());
