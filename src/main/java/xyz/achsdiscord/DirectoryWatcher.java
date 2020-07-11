@@ -40,6 +40,7 @@ public class DirectoryWatcher {
         exemptPlayers.add("Sichrylan");
         exemptPlayers.add("hedwig10");
         exemptPlayers.add("stanner321");
+        exemptPlayers.add("supma");
         dirWatchExemptPlayers = exemptPlayers;
     }
 
@@ -285,6 +286,5 @@ public class DirectoryWatcher {
         System.out.println("[INFO] API Requests Time: " + requestProcessingTime + " SEC.");
         System.out.println("[INFO] Processing Requests Time: " + processReqTime + " SEC.");
         System.out.println("=====================================");
-
     }
 }

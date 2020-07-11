@@ -207,21 +207,9 @@ public abstract class AbstractNameParser {
 
         this.calledMakeBlkWtFunc = true;
 
-        // replace any invalid colors
-        // with white
-        for (int y = 0; y < this._img.getHeight(); y++) {
-            for (int x = 0; x < this._img.getWidth(); x++) {
-                Color color = new Color(this._img.getRGB(x, y));
-
-                if (!this.isValidColor(color)) {
-                    this._img.setRGB(x, y, Color.white.getRGB());
-                }
-            }
-        }
-
         // now, let's make sure there aren't any random "particles" sitting around.
         for (int x = 0; x < this._img.getWidth(); x++) {
-            int numberOfParticles = numberParticlesInVertLine(x);
+            int numberOfParticles = this.numberParticlesInVertLine(x);
             // more than 10 particles means it's a name.
             if (numberOfParticles > 10) {
                 break;
@@ -286,9 +274,9 @@ public abstract class AbstractNameParser {
                 }
             }
         }
-
+/*
         for (int y = this._img.getHeight() - 1; y >= 0; y--) {
-            boolean isSep = numberParticlesInHorizLine(y) == 0;
+            boolean isSep = this.numberParticlesInHorizLine(y) == 0;
             if (isSep) {
                 break;
             } else {
@@ -298,7 +286,7 @@ public abstract class AbstractNameParser {
                     }
                 }
             }
-        }
+        }*/
 
         if (topY == -1) {
             throw new InvalidImageException("Couldn't crop the image. Make " +
@@ -365,8 +353,7 @@ public abstract class AbstractNameParser {
         if (max == null) {
             // default width
             this._width = 2;
-        }
-        else {
+        } else {
             this._width = max.getKey();
         }
     }
