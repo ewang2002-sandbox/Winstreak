@@ -1,4 +1,7 @@
-package xyz.achsdiscord.parse;
+package xyz.achsdiscord.parse.v1;
+
+import xyz.achsdiscord.parse.Constants;
+import xyz.achsdiscord.parse.exception.InvalidImageException;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -52,7 +55,7 @@ public class LobbyNameParser extends AbstractNameParser {
      *     </li>
      * </ul>
      * 
-     * @see xyz.achsdiscord.parse.AbstractNameParser#cropImageIfFullScreen() 
+     * @see AbstractNameParser#cropImageIfFullScreen()
      * @throws InvalidImageException If the image does not meet the criteria specified
      * above.
      */
@@ -72,7 +75,7 @@ public class LobbyNameParser extends AbstractNameParser {
         major:
         for (int y = 0; y < super._img.getHeight(); y++) {
             for (int x = 0; x < super._img.getWidth(); x++) {
-                if (super._img.getRGB(x, y) == BOSS_BAR_COLOR.getRGB()) {
+                if (super._img.getRGB(x, y) == Constants.BOSS_BAR_COLOR.getRGB()) {
                     topLeftX = x;
                     topLeftY = y;
                     break major;
@@ -84,9 +87,9 @@ public class LobbyNameParser extends AbstractNameParser {
         int bottomRightX = -1;
         int bottomRightY = -1;
         major:
-        for (int x = super._img.getWidth() - LISTED_NUMS_OFFSET; x >= 0; x--) {
+        for (int x = super._img.getWidth() - Constants.LISTED_NUMS_OFFSET; x >= 0; x--) {
             for (int y = super._img.getHeight() - 1; y >= 0; y--) {
-                if (super._img.getRGB(x, y) == STORE_HYPIXEL_NET_DARK_COLOR.getRGB()) {
+                if (super._img.getRGB(x, y) == Constants.STORE_HYPIXEL_NET_DARK_COLOR.getRGB()) {
                     bottomRightX = x;
                     bottomRightY = y;
                     break major;
@@ -221,8 +224,8 @@ public class LobbyNameParser extends AbstractNameParser {
                     ttlBytes = new StringBuilder(ttlBytes.substring(0, ttlBytes.length() - 8));
                 }
 
-                if (binaryToCharactersMap.containsKey(ttlBytes.toString())) {
-                    name.append(binaryToCharactersMap.get(ttlBytes.toString()));
+                if (Constants.binaryToCharactersMap.containsKey(ttlBytes.toString())) {
+                    name.append(Constants.binaryToCharactersMap.get(ttlBytes.toString()));
                 } else {
                     break;
                 }
@@ -250,11 +253,11 @@ public class LobbyNameParser extends AbstractNameParser {
      * @see AbstractNameParser#isValidColor(Color)
      */
     public boolean isValidColor(Color color) {
-        return color.getRGB() == MVP_PLUS_PLUS.getRGB()
-                || color.getRGB() == MVP_PLUS.getRGB()
-                || color.getRGB() == MVP.getRGB()
-                || color.getRGB() == VIP_PLUS.getRGB()
-                || color.getRGB() == VIP.getRGB()
-                || color.getRGB() == NONE.getRGB();
+        return color.getRGB() == Constants.MVP_PLUS_PLUS.getRGB()
+                || color.getRGB() == Constants.MVP_PLUS.getRGB()
+                || color.getRGB() == Constants.MVP.getRGB()
+                || color.getRGB() == Constants.VIP_PLUS.getRGB()
+                || color.getRGB() == Constants.VIP.getRGB()
+                || color.getRGB() == Constants.NONE.getRGB();
     }
 }

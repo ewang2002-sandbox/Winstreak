@@ -1,4 +1,7 @@
-package xyz.achsdiscord.parse;
+package xyz.achsdiscord.parse.v1;
+
+import xyz.achsdiscord.parse.Constants;
+import xyz.achsdiscord.parse.exception.InvalidImageException;
 
 import java.awt.*;
 import java.io.File;
@@ -45,7 +48,7 @@ public class InGameNameParser extends AbstractNameParser {
      *
      * @throws InvalidImageException If the image does not meet the criteria specified
      *                               above.
-     * @see xyz.achsdiscord.parse.AbstractNameParser#cropImageIfFullScreen()
+     * @see AbstractNameParser#cropImageIfFullScreen()
      */
     @Override
     public void cropImageIfFullScreen() throws InvalidImageException {
@@ -63,7 +66,7 @@ public class InGameNameParser extends AbstractNameParser {
         major:
         for (int y = 0; y < super._img.getHeight(); y++) {
             for (int x = 0; x < super._img.getWidth(); x++) {
-                if (super._img.getRGB(x, y) == YOU_ARE_PLAYING_ON_COLOR.getRGB()) {
+                if (super._img.getRGB(x, y) == Constants.YOU_ARE_PLAYING_ON_COLOR.getRGB()) {
                     topLeftX = x;
                     topLeftY = y;
                     break major;
@@ -75,9 +78,9 @@ public class InGameNameParser extends AbstractNameParser {
         int bottomRightX = -1;
         int bottomRightY = -1;
         major:
-        for (int x = super._img.getWidth() - LISTED_NUMS_OFFSET; x >= 0; x--) {
+        for (int x = super._img.getWidth() - Constants.LISTED_NUMS_OFFSET; x >= 0; x--) {
             for (int y = super._img.getHeight() - 1; y >= 0; y--) {
-                if (super._img.getRGB(x, y) == STORE_HYPIXEL_NET_DARK_COLOR.getRGB()) {
+                if (super._img.getRGB(x, y) == Constants.STORE_HYPIXEL_NET_DARK_COLOR.getRGB()) {
                     bottomRightX = x;
                     bottomRightY = y;
                     break major;
@@ -195,7 +198,7 @@ public class InGameNameParser extends AbstractNameParser {
      * @see AbstractNameParser#getPlayerNames()
      */
     @Override
-    public Map<TeamColors, List<String>> getPlayerNames() {
+    public Map<Constants.TeamColors, List<String>> getPlayerNames() {
         return this.getPlayerNames(new ArrayList<>());
     }
 
@@ -209,17 +212,17 @@ public class InGameNameParser extends AbstractNameParser {
      * @see AbstractNameParser#getPlayerNames(List)
      */
     @Override
-    public Map<TeamColors, List<String>> getPlayerNames(List<String> peopleToExclude) {
+    public Map<Constants.TeamColors, List<String>> getPlayerNames(List<String> peopleToExclude) {
         if (!super.calledMakeBlkWtFunc && !super.calledFixImgFunc) {
             return new HashMap<>();
         }
         // will contain list of names
         int y = 0;
 
-        Map<TeamColors, List<String>> teammates = new HashMap<>();
-        List<TeamColors> colorsToIgnore = new ArrayList<>();
+        Map<Constants.TeamColors, List<String>> teammates = new HashMap<>();
+        List<Constants.TeamColors> colorsToIgnore = new ArrayList<>();
 
-        TeamColors currentColor = null;
+        Constants.TeamColors currentColor = null;
         while (y <= super._img.getHeight()) {
             StringBuilder name = new StringBuilder();
             int x = 0;
@@ -254,8 +257,8 @@ public class InGameNameParser extends AbstractNameParser {
                     ttlBytes = new StringBuilder(ttlBytes.substring(0, ttlBytes.length() - 8));
                 }
 
-                if (LobbyNameParser.binaryToCharactersMap.containsKey(ttlBytes.toString())) {
-                    name.append(LobbyNameParser.binaryToCharactersMap.get(ttlBytes.toString()));
+                if (Constants.binaryToCharactersMap.containsKey(ttlBytes.toString())) {
+                    name.append(Constants.binaryToCharactersMap.get(ttlBytes.toString()));
                 } else {
                     break;
                 }
@@ -292,18 +295,18 @@ public class InGameNameParser extends AbstractNameParser {
      * @param color The given color.
      * @return The TeamColor enum member corresponding to that color.
      */
-    private TeamColors getTeamColor(Color color) {
+    private Constants.TeamColors getTeamColor(Color color) {
         int rgb = color.getRGB();
-        if (rgb == AbstractNameParser.BLUE_TEAM_COLOR.getRGB()) {
-            return TeamColors.BLUE;
-        } else if (rgb == AbstractNameParser.RED_TEAM_COLOR.getRGB()) {
-            return TeamColors.RED;
-        } else if (rgb == AbstractNameParser.YELLOW_TEAM_COLOR.getRGB()) {
-            return TeamColors.YELLOW;
-        } else if (rgb == AbstractNameParser.GREEN_TEAM_COLOR.getRGB()) {
-            return TeamColors.GREEN;
+        if (rgb == Constants.BLUE_TEAM_COLOR.getRGB()) {
+            return Constants.TeamColors.BLUE;
+        } else if (rgb == Constants.RED_TEAM_COLOR.getRGB()) {
+            return Constants.TeamColors.RED;
+        } else if (rgb == Constants.YELLOW_TEAM_COLOR.getRGB()) {
+            return Constants.TeamColors.YELLOW;
+        } else if (rgb == Constants.GREEN_TEAM_COLOR.getRGB()) {
+            return Constants.TeamColors.GREEN;
         } else {
-            return TeamColors.UNKNOWN;
+            return Constants.TeamColors.UNKNOWN;
         }
     }
 
@@ -314,9 +317,9 @@ public class InGameNameParser extends AbstractNameParser {
      * @return Whether the color is valid or not.
      */
     public boolean isValidColor(Color color) {
-        return color.getRGB() == RED_TEAM_COLOR.getRGB()
-                || color.getRGB() == BLUE_TEAM_COLOR.getRGB()
-                || color.getRGB() == YELLOW_TEAM_COLOR.getRGB()
-                || color.getRGB() == GREEN_TEAM_COLOR.getRGB();
+        return color.getRGB() == Constants.RED_TEAM_COLOR.getRGB()
+                || color.getRGB() == Constants.BLUE_TEAM_COLOR.getRGB()
+                || color.getRGB() == Constants.YELLOW_TEAM_COLOR.getRGB()
+                || color.getRGB() == Constants.GREEN_TEAM_COLOR.getRGB();
     }
 }

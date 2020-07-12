@@ -1,9 +1,10 @@
 package xyz.achsdiscord;
 
-import xyz.achsdiscord.parse.AbstractNameParser;
-import xyz.achsdiscord.parse.InGameNameParser;
-import xyz.achsdiscord.parse.InvalidImageException;
-import xyz.achsdiscord.parse.LobbyNameParser;
+import xyz.achsdiscord.parse.Constants;
+import xyz.achsdiscord.parse.exception.InvalidImageException;
+import xyz.achsdiscord.parse.v1.AbstractNameParser;
+import xyz.achsdiscord.parse.v1.InGameNameParser;
+import xyz.achsdiscord.parse.v1.LobbyNameParser;
 import xyz.achsdiscord.request.MultipleRequestHandler;
 import xyz.achsdiscord.request.checker.ResponseCheckerResults;
 import xyz.achsdiscord.request.checker.ResponseParser;
@@ -234,13 +235,13 @@ public class DirectoryWatcher {
         names.fixImage();
         names.identifyWidth();
 
-        Map<AbstractNameParser.TeamColors, List<String>> teammates = names.getPlayerNames();
+        Map<Constants.TeamColors, List<String>> teammates = names.getPlayerNames();
         long endImageProcessing = System.nanoTime();
 
         long startRequestTime = System.nanoTime();
 
         List<TeamInfo> teamInfo = new ArrayList<>();
-        for (Map.Entry<AbstractNameParser.TeamColors, List<String>> entry : teammates.entrySet()) {
+        for (Map.Entry<Constants.TeamColors, List<String>> entry : teammates.entrySet()) {
             Map<String, String> teamData = new MultipleRequestHandler(entry.getValue())
                     .sendRequests();
             ResponseParser parser = new ResponseParser(teamData);

@@ -1,6 +1,6 @@
 package xyz.achsdiscord.request.checker;
 
-import xyz.achsdiscord.parse.AbstractNameParser;
+import xyz.achsdiscord.parse.Constants;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ public final class TeamInfo {
     public final int totalBrokenBeds;
 
     public TeamInfo(
-            AbstractNameParser.TeamColors color,
+            Constants.TeamColors color,
             List<ResponseCheckerResults> availablePlayers,
             List<String> errored,
             int totalFinals,
