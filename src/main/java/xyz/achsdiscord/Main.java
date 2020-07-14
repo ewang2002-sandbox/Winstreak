@@ -2,10 +2,15 @@
 // https://github.com/ewang2002/WinstreakBot/commit/813d8e91b5c16d8bb3c99a4ac8c864762f23d967
 package xyz.achsdiscord;
 
+import xyz.achsdiscord.dirwatcher.DirectoryWatcher;
+import xyz.achsdiscord.dirwatcher.tests.DirectoryV2;
+
 import java.nio.file.Path;
 import java.util.Scanner;
 
 public class Main {
+    public static final boolean PRODUCTION = false;
+
     public static void main(String[] args) {
         int brokenBeds;
         int finalKills;
@@ -38,6 +43,15 @@ public class Main {
         }
         System.out.println("[INFO] Starting Service.");
         System.out.println("[INFO] Checking: " + path.toString());
-        DirectoryWatcher.startMonitoring(path, finalKills, brokenBeds, amtTryHards);
+
+        if (PRODUCTION) {
+            System.out.println("[INFO] Mode: PRODUCTION.");
+            System.out.println("=====================================");
+            DirectoryWatcher.startMonitoring(path, finalKills, brokenBeds, amtTryHards);
+        } else {
+            System.out.println("[INFO] Mode: TESTING.");
+            System.out.println("=====================================");
+            DirectoryV2.startMonitoring(path);
+        }
     }
 }

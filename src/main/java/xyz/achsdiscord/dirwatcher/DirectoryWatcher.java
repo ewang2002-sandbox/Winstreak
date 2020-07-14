@@ -1,4 +1,4 @@
-package xyz.achsdiscord;
+package xyz.achsdiscord.dirwatcher;
 
 import xyz.achsdiscord.parse.Constants;
 import xyz.achsdiscord.parse.exception.InvalidImageException;
