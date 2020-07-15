@@ -3,14 +3,11 @@
 package xyz.achsdiscord;
 
 import xyz.achsdiscord.dirwatcher.DirectoryWatcher;
-import xyz.achsdiscord.dirwatcher.tests.DirectoryV2;
 
 import java.nio.file.Path;
 import java.util.Scanner;
 
 public class Main {
-    public static final boolean PRODUCTION = false;
-
     public static void main(String[] args) {
         int brokenBeds;
         int finalKills;
@@ -36,22 +33,15 @@ public class Main {
         Path path;
         try {
             path = Path.of(System.getProperty("user.home"), "AppData", "Roaming", ".minecraft", "screenshots");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return;
         }
         System.out.println("[INFO] Starting Service.");
         System.out.println("[INFO] Checking: " + path.toString());
 
-        if (PRODUCTION) {
-            System.out.println("[INFO] Mode: PRODUCTION.");
-            System.out.println("=====================================");
-            DirectoryWatcher.startMonitoring(path, finalKills, brokenBeds, amtTryHards);
-        } else {
-            System.out.println("[INFO] Mode: TESTING.");
-            System.out.println("=====================================");
-            DirectoryV2.startMonitoring(path);
-        }
+        System.out.println("[INFO] Mode: PRODUCTION.");
+        System.out.println("=====================================");
+        DirectoryWatcher.startMonitoring(path, finalKills, brokenBeds, amtTryHards);
     }
 }
