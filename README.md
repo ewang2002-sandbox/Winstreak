@@ -17,17 +17,36 @@ Given a screenshot, the program will do the following.
 3. Grabs relevant data from a public API.
 4. Displays them in a way that is easy to understand. 
 
+## Requirements
+- Minecraft: Tested with 1.8.x. This should work with the latest version.
+    - There should be no major modifications to the client; the Minecraft client you are using should look exactly the same as the default, unmodified client. In other words, no texture packs (especially ones that change the font) and refrain from mods (Optifine should work). Use the Vanilla client. 
+
 ## Technologies Used
 - Java: So I can get some additional practice with the Java programming language. 
+    - Compatible with Java 11+ (Oracle OpenJDK).  
 - Gradle: To learn more about what Gradle has to offer. 
+    - Compatible with Gradle v6.5.1. 
 
-## What I Learned
-- I learned more about the binary system (0101010).
-- I learned about `byte` and how it corresponds to an image.
-- I learned a bit more about image processing in Java.
-- I took the time to learn more about Gradle. 
+## Performance
+I should mention that this program isn't necessarily designed with performance in mind. Remember, the goal of this application is to work with most, if not all, (clean vanilla) Minecraft settings. This means that the program has to work with any GUI scale and any resolution. Another version of the program, which was implemented by my friend (see Credits), takes less than 30 milliseconds to process the image and about the same time to make API calls; however, his program already knows where to start looking. In other words, his program would break if the GUI scale and/or resolution was changed. 
+
+The performance of this application is dependent on your computer's specifications. In other words, the better your computer, the faster this program should function. The specifications of my laptop are:
+- Intel Core i5-1035G1 CPU @ 1.00 GHz
+- 12.0 GB RAM
+- Intel UHD Graphics
+- 512 GB SSD
+- 1920 x 1800 Resolution 
+
+The performance statistics are displayed below. Note that these are not accurate numbers; they are merely estimates based on past gameplay data. I will provide accurate numbers when I get them. Note that the Minecraft client used is a completely clean installation of v1.8.9. No modifications were used. Graphics settings (in Minecraft settings) are the default settings. Minecraft was fully maximized, although not fullscreen. 
+
+| Type | Without Minecraft Open | With Minecraft Open |
+|---|---|---|
+| Image Processing | ~55 MS | ~120 MS |
+| API Requests* | ~3 S | ~4 S |
+
+\* This is dependent on your network connection and how responsive the API is. 
 
 ## Credit
 - I came up with the original idea.
 - Dakota Frost ([@icicl](https://github.com/icicl/)) implemented the idea first. 
-    - He also took the time to explain how his program worked. My program is based on his program, with adjustments made to the codebase so the program accepts more screenshots (Dakota's program hardcodes the values, whereas my program attempts to find them from the screenshot given). 
+    - He also took the time to explain how his program worked. My program is based on his program, with adjustments made to the codebase so the program accepts screenshots of any type (Dakota's program hardcodes the values, whereas my program attempts to find them from the screenshot given). 
