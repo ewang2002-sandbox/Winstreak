@@ -1,5 +1,3 @@
-// old WORKING commit
-// https://github.com/ewang2002/WinstreakBot/commit/813d8e91b5c16d8bb3c99a4ac8c864762f23d967
 package xyz.achsdiscord;
 
 import xyz.achsdiscord.dirwatcher.DirectoryWatcher;
@@ -25,7 +23,7 @@ public class Main {
             } while (finalKills <= 0);
 
             do {
-                System.out.println("How many total tryhards in lobby before we recommend that you leave?");
+                System.out.println("How many total tryhards in lobby before we recommend that you leave? ");
                 amtTryHards = scanner.nextInt();
             } while (amtTryHards <= 0);
         }
