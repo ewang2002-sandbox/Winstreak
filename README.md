@@ -31,18 +31,33 @@ Given a screenshot, the program will do the following.
 I should mention that this program isn't necessarily designed with performance in mind. Remember, the goal of this application is to work with most, if not all, (clean vanilla) Minecraft settings. This means that the program has to work with any GUI scale and any resolution. Another version of the program, which was implemented by my friend (see Credits), takes less than 30 milliseconds to process the image and about the same time to make API calls; however, his program already knows where to start looking. In other words, his program would break if the GUI scale and/or resolution was changed. 
 
 The performance of this application is dependent on your computer's specifications. In other words, the better your computer, the faster this program should function. The specifications of my laptop are:
-- Intel Core i5-1035G1 CPU @ 1.00 GHz
+- Intel Core i5-8400 CPI @ 2.80 GHz
 - 12.0 GB RAM
-- Intel UHD Graphics
-- 512 GB SSD
+- Intel UHD Graphics 630
+- 1 TB HDD
 - 1920 x 1800 Resolution 
 
-The performance statistics are displayed below. Note that these are not accurate numbers; they are merely estimates based on past gameplay data. I will provide accurate numbers when I get them. Note that the Minecraft client used is a completely clean installation of v1.8.9. No modifications were used. Graphics settings (in Minecraft settings) are the default settings. Minecraft was fully maximized, although not fullscreen. 
+The performance statistics are displayed below. I used Minecraft v1.8.9 with Optifine. No additional mods or texture packs were used, and no changes to graphics were made. I processed 20 screenshots, all of which had a player list with at least 14 people. A few outliers were present in the data, which I'll explain more in detail later. 
+
+**Data of All Screenshots (Below)**
 
 | Type | Without Minecraft Open | With Minecraft Open |
 |---|---|---|
-| Image Processing | ~55 MS | ~120 MS |
-| API Requests* | ~3 S | ~4 S |
+| Image Processing | ~0.078 S | ~0.115 S |
+| API Requests* | ~1.919 S | ~5.071 S |
+
+**With Outliers Removed**
+
+| Type | Without Minecraft Open | With Minecraft Open |
+|---|---|---|
+| Image Processing | ~0.039 S (-1) | ~0.078 S (-1) |
+| API Requests* | ~1.919 S (-0) | ~2.172 S (-2) |
+
+In the case of outliers, the (-#) means the number of entries removed. In my case, outliers are simply values that were much higher or lower than normal. Outliers are rarely seen, which is why it's sensible to remove them for the next data set -- because the first table doesn't remove any outliers, it doesn't accurately reflect what normal gameplay would look like. 
+
+For image processing, the outliers always come from the first screenshot. This could be due to everything needing to be loaded first (average time is usually 0.7 second) ; in future calls, everything the program needs is already cached so it takes less time (average time is usually around 0.02-0.08 second). 
+
+For API requests, it depends solely on your network speed and the response of the website. Sometimes, the website will perform like normal; other times, the website will be extremely slow. 
 
 \* This is dependent on your network connection and how responsive the API is. 
 
