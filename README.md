@@ -1,7 +1,5 @@
 # Winstreak
-Winstreak is a program designed to ensure you, the player, can maintain a win-streak in Hypixel's Bedwars mini-game. 
-
-It allows you to determine whether you should leave the Bedwars lobby or not, and tells you which teams are the most competitive (and should be taken out first).
+Winstreak is a program designed to ensure you, the player, can maintain a win-streak in Hypixel's Bedwars mini-game. It allows you to determine whether you should leave the Bedwars lobby or not, and tells you which teams are the most competitive (and should be taken out first).
 
 ## Purpose
 Often, players are put in a Bedwars lobby with a bunch of tryhards. A tryhard is essentially a player that puts all their effort into the game; in other words, the tryhard tries to end the game as fast as possible by destroying all the enemy beds and killing all players within a certain time.
